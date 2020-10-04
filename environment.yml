@@ -1,0 +1,48 @@
+name: quassi_gaussian
+channels:
+    - defaults
+    - anaconda
+    - conda-forge
+dependencies:
+    - ipython
+    - jupyterlab
+    - matplotlib
+    - nbsphinx
+    - notebook
+    - numba
+    - numpy
+    - pandas
+    - pip
+    - psycopg2
+    - pytest
+    - pytest-cov
+    - pytest-html
+    - python=3.7
+    - pyyaml
+    - scipy
+    - sphinx
+    - sphinx_rtd_theme
+    - sadisplay # create uml from db models
+    - pytest-profiling # for profiling
+    - pyprof2calltree # for profiling
+    - qcachegrind # for profiling
+    - memory_profiler
+    - pytables # for HDF5 storage
+    - xlrd # for Excel import/export
+    - deprecated
+    - nbstripout # filtering out output cells of Jupyter notebooks
+    - lxml
+    - openpyxl # for writing to excel file
+    - plotly
+    - nodejs # required for Plotly in JupyterLab, see https://plot.ly/python/getting-started/#jupyterlab-support-python-35
+    - ipywidgets # interactive plots
+    - seaborn
+    - scikit-learn
+    - h5py
+    - XlsxWriter
+    - pip:
+          - nbsphinx-link
+          - quantlib-python
+          - pynverse
+prefix: quassi_gaussian
+
