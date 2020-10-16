@@ -43,7 +43,7 @@ class ConstructL1A():
         li = - self.theta * self.delta_t * li
         ci = 1 - self.theta * self.delta_t * ci
         ui = - self.theta * self.delta_t * ui
-        l1_lhs = scipy.sparse.diags([li, ci, ui], offsets=[-1, 0, 1], shape=(self.msize - 2, self.msize - 2))
+        l1_lhs = scipy.sparse.diags([li[1:], ci, ui[:-1]], offsets=[-1, 0, 1], shape=(self.msize - 2, self.msize - 2))
         return l1_lhs
 
     def construct_diagonal_elements(self, eta_sq, mu_x, r):
@@ -133,7 +133,7 @@ class ConstructL1A():
         ui[0] = ui[0] + b2*li[0]
 
         ci[-1] = ci[-1] + bI*ui[-1]
-        ci[-2] = ci[-2] + bI_m1*ui[-2]
+        li[-1] = li[-1] + bI_m1*ui[-1]
         return li, ci, ui
 
 if __name__ == '__main__':

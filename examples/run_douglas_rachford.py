@@ -2,9 +2,9 @@ from quassigaussian.adi.douglas_rachford import DouglasRachfordAdi
 from quassigaussian.mesher.linear_mesher import Mesher2d
 import numpy as np
 
-theta = 0
+theta = 0.5
 mesher = Mesher2d()
-mesher.create_mesher_2d(0, 10, 100, 0, 0.99, 100, 0, 0.9, 10)
+mesher.create_mesher_2d(0, 1, 100, 0, 0.99, 100, 0, 0.9, 10)
 initial_curve = mesher.tgrid*0.2
 kappa = 0.2
 
