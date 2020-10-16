@@ -55,7 +55,7 @@ class ConstructL2():
 
         c_j = 1 - self.theta * self.delta_t * c_j
         l_j = - self.theta * self.delta_t * l_j
-        u_j = self.theta * self.delta_t * u_j
+        u_j = - self.theta * self.delta_t * u_j
 
         l2_lhs = scipy.sparse.diags([l_j[1:], c_j, u_j[:-1]], offsets=[-1, 0, 1], shape=(self.y_size_full-2, self.y_size_full-2))
         return l2_lhs
