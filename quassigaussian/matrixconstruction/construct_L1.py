@@ -75,7 +75,7 @@ class ConstructL1A():
 
     def f_lower_calc(self, v_sol, l2_v):
         f_lower = ((1 - self.theta) * self.delta_t * (v_sol[0] * self.k_0 + v_sol[1] * self.k_1 + v_sol[2] * self.k_2)) \
-                  + v_sol[0] + self.delta_t * l2_v[-1]
+                  + v_sol[0] + self.delta_t * l2_v[0]
         f_lower *= 1 / (1 - self.theta * self.delta_t * self.k_0)
         return f_lower
 
