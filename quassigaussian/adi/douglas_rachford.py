@@ -24,7 +24,8 @@ class DouglasRachfordAdi():
 
         v_new = v_init.copy()
 
-        for time_k in time_grid_reversed:
+        for time_k in time_grid_reversed[1:]:
+            print(time_k)
             v_old = v_new.copy()
             self.coefficient_constr.update_coefficients(time_k)
             v_new = self.solve_eq(v_old, self.coefficient_constr.mu_x, self.coefficient_constr.mu_y,
@@ -63,7 +64,6 @@ class DouglasRachfordAdi():
 
         u_outp = np.zeros(shape=(self.mesher.xdim-2, self.mesher.ydim))
         for j in range(len(self.mesher.ygrid)):
-            print(j)
             l1_rhs = self.constructL1.construct_l1_rhs_matrix(eta_sq[:,j], mu_x[:,j], r)
             u_outp[:, j] = l1_rhs*v_old[:, j]
 
