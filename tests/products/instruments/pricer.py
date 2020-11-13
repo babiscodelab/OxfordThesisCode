@@ -1,6 +1,6 @@
 
-from quassigaussian.products.pricer import BondPricer
-from quassigaussian.products.instruments import Bond
+from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer
+from quassigaussian.products.instruments import Bond, Swaption, Swap
 from quassigaussian.curves.libor import LiborCurve
 
 
@@ -15,4 +15,34 @@ def test_bond_pricer():
     print("pause")
 
 
-test_bond_pricer()
+def test_swap_pricer():
+    swap = Swap(1, 2, 0.5)
+    tmp_file = r"C:\Users\d80084\Google Drive\01oxford\7 Thesis\code\quasigaussian\data\market_data\libor_curve\usd_libor\sofr_curve.csv"
+    initial_curve = LiborCurve.from_file(tmp_file, "2013-05-20")
+
+    swap_pricer = SwapPricer(initial_curve, kappa=0.2)
+    price = swap_pricer.price(swap, 0, 0, 0)
+
+    print("pas")
+
+
+def test_swaption_pricer():
+
+    swap = Swap(1, 2, 0.5)
+    swaption = Swaption(expiry=1, coupon=0.001,swap=swap)
+
+    tmp_file = r"C:\Users\d80084\Google Drive\01oxford\7 Thesis\code\quasigaussian\data\market_data\libor_curve\usd_libor\sofr_curve.csv"
+    initial_curve = LiborCurve.from_file(tmp_file, "2013-05-20")
+
+    swap_pricer = SwapPricer(initial_curve, kappa=0.2)
+    bond_pricer = BondPricer(initial_curve, 0.2)
+
+    lambda_s = 1000000000
+    b_s = 0.1
+
+    swaption_pricer = SwaptionPricer(lambda_s, b_s, swap_pricer, bond_pricer)
+    price = swaption_pricer.price(swaption)
+
+    print("pause")
+
+test_swaption_pricer()

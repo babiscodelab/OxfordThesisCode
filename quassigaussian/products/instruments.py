@@ -1,3 +1,4 @@
+from numpy import arange
 
 class Bond():
 
@@ -9,34 +10,31 @@ class Bond():
 
 class Swap():
 
-    def __init__(self, T0: int, TN: int, frequency: int):
+    def __init__(self, T0: int, TN: int, frequency: float):
 
         self.T0 = T0
         self.TN = TN
         self.start = T0 + frequency # T1
         self.frequency = frequency
-        self.number_payments = (self.T0 - self.start)/self.frequency
-        self.payment_schedule = range(self.start, self.TN, self.frequency)
-        self.bond_list = self.get_bond_list()
 
         self.bond_T0 = Bond(self.T0)
         self.bond_TN = Bond(self.TN)
 
-        self.bond_list = self.get_bond_list()
+        payment_schedule = arange(self.start, self.TN + 0.0000001, self.frequency)
+        self.bond_list = self.get_bond_list(payment_schedule)
 
-    def get_bond_list(self):
+    def get_bond_list(self, payment_schedule):
 
         bond_list = []
-        for payment_date in self.payment_schedule:
+        for payment_date in payment_schedule:
             bond_list.append(Bond(payment_date))
 
         return bond_list
 
 class Swaption():
 
-    def __init__(self, expiry: float, maturity: float, coupon: float, swap: Swap):
+    def __init__(self, expiry: float, coupon: float, swap: Swap):
         self.expiry = expiry
-        self.maturity = maturity
         self.coupon = coupon
         self.swap = swap
 

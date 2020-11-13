@@ -31,7 +31,7 @@ class LiborCurve(Curve):
 
         df = pd.read_csv(file_path)
         df = df.loc[df["CURVE_DATE"] == date]
-        time_grid = df["CURVE_OFFSET"]/360
+        time_grid = df["CURVE_OFFSET"]/365
         disc_grid = df["CURVE_BID"]
 
         return LiborCurve(time_grid, disc_grid)

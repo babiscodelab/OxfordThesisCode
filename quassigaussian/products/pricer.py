@@ -30,7 +30,7 @@ class SwapPricer():
         self.kappa = kappa
         self.initial_curve = initial_curve
         self.bond_pricer = BondPricer(initial_curve, kappa)
-        self.annuity_pricer = AnnuityPricer()
+        self.annuity_pricer = AnnuityPricer(self.bond_pricer)
 
 
     def price(self, swap: Swap, x: float, y: float, t: float):
@@ -102,6 +102,8 @@ class CapitalX():
 
 class AnnuityPricer():
 
+    def __init__(self, bond_pricer: BondPricer):
+        self.bond_pricer = bond_pricer
 
     def annuity_times_g(self, t: float, x: float, y: float, freq: float, kappa: float, bond_list: list):
 
@@ -115,7 +117,7 @@ class AnnuityPricer():
 
         annuity = 0
         for bond in bond_list:
-            annuity += freq*bond.price(x, y, t)
+            annuity += freq*self.bond_pricer.price(bond, x, y, t)
 
         return annuity
 
@@ -135,15 +137,16 @@ class AnnuityPricer():
 
 class SwaptionPricer():
 
-    def __init__(self, lambda_s: float, b_s: float, swap_pricer: SwapPricer):
+    def __init__(self, lambda_s: float, b_s: float, swap_pricer: SwapPricer, bond_pricer: BondPricer):
         self.lambda_s = lambda_s
         self.b_s = b_s
         self.swap_pricer = swap_pricer
+        self.bond_pricer = bond_pricer
 
+    def price(self, swaption: Swaption):
 
-    def calculate_swaption(self, swaption: Swaption):
-
-        annuity_pricer = AnnuityPricer()
+        #TODO need to check the correctness...
+        annuity_pricer = AnnuityPricer(self.bond_pricer)
         annuity_0 = annuity_pricer.annuity_price(0, 0, 0, swaption.swap.frequency, swaption.swap.bond_list)
         swap_0 = self.swap_pricer.price(swaption.swap, 0, 0, 0)
 
@@ -160,10 +163,11 @@ class SwaptionPricer():
         swap_0 = self.swap_pricer.price(swaption.swap, 0, 0, 0)
         d = np.log((swap_0 + swap_0*(1 - self.b_s)/self.b_s)/(swaption.coupon + swap_0*(1-self.b_s)/self.b_s))
 
-        numerator = self.b_s * self.lambda_s * math.sqrt(swaption.expiry)
-        plus = 0.5 * math.pow(self.b_s, 2) * math.pow(self.lambda_s, 2)
-        minus = -plus
-        dplus = (d + plus)/numerator
-        dminus = (d + minus)/numerator
+        denominator = self.b_s * self.lambda_s * math.sqrt(swaption.expiry)
+
+        plus = 0.5 * math.pow(self.b_s, 2) * math.pow(self.lambda_s, 2) * swaption.expiry
+
+        dplus = (d + plus)/denominator
+        dminus = (d - plus)/denominator
 
         return dplus, dminus
