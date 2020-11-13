@@ -145,7 +145,6 @@ class SwaptionPricer():
 
     def price(self, swaption: Swaption):
 
-        #TODO need to check the correctness...
         annuity_pricer = AnnuityPricer(self.bond_pricer)
         annuity_0 = annuity_pricer.annuity_price(0, 0, 0, swaption.swap.frequency, swaption.swap.bond_list)
         swap_0 = self.swap_pricer.price(swaption.swap, 0, 0, 0)

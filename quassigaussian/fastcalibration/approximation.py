@@ -7,8 +7,8 @@ from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 
 class PiterbargApproximator():
 
-    def __init__(self, g_t, sigma_r: LinearLocalVolatility, swap_pricer: SwapPricer):
-        self.g_t = g_t
+    def __init__(self, sigma_r: LinearLocalVolatility, swap_pricer: SwapPricer):
+        self.g_t = lambda t: np.exp(-swap_pricer.kappa*t)
         self.sigma_r = sigma_r
         self.swap_pricer = swap_pricer
         self.capital_x = CapitalX(swap_pricer)
