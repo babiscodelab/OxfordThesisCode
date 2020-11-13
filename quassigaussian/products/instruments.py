@@ -1,6 +1,4 @@
 
-
-
 class Bond():
 
     def __init__(self, maturity: float):
@@ -11,12 +9,11 @@ class Bond():
 
 class Swap():
 
-    def __init__(self, T0: int, TN: int, initial_curve: callable, frequency: int):
+    def __init__(self, T0: int, TN: int, frequency: int):
 
         self.T0 = T0
         self.TN = TN
         self.start = T0 + frequency # T1
-        self.initial_curve = initial_curve
         self.frequency = frequency
         self.number_payments = (self.T0 - self.start)/self.frequency
         self.payment_schedule = range(self.start, self.TN, self.frequency)

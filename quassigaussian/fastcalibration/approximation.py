@@ -1,6 +1,6 @@
 import scipy.integrate as integrate
 import math
-from quassigaussian.products.instruments import SwapPricer, CapitalX
+from quassigaussian.products.pricer import SwapPricer, CapitalX
 from scipy.optimize import fsolve
 import numpy as np
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility

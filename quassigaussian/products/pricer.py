@@ -4,16 +4,17 @@ import numpy as np
 from scipy.stats import norm
 
 from quassigaussian.products.instruments import Bond, Swap, Swaption
+from quassigaussian.curves.libor import Curve
 
 class BondPricer():
 
-    def __init__(self, initial_curve: callable, kappa: float):
+    def __init__(self, initial_curve: Curve, kappa: float):
         self.kappa = kappa
         self.initial_curve = initial_curve
 
     def price(self, bond: Bond, x: float, y: float, t: float):
         G = calculate_G(self.kappa, t, bond.maturity)
-        return self.initial_curve(bond.maturity)/self.initial_curve(t) * np.exp(-G*x - 0.5*math.pow(G, 2)*y)
+        return self.initial_curve.get_discount(bond.maturity)/self.initial_curve.get_discount(t) * np.exp(-G*x - 0.5*math.pow(G, 2)*y)
 
     def dpdx(self, bond: Bond, x: float, y: float, t: float):
         return - self.price(bond, x, y, t) * calculate_G(self.kappa, t, bond.maturity)
@@ -25,7 +26,7 @@ class BondPricer():
 
 class SwapPricer():
 
-    def __init__(self, initial_curve: callable, kappa: float):
+    def __init__(self, initial_curve: Curve, kappa: float):
         self.kappa = kappa
         self.initial_curve = initial_curve
         self.bond_pricer = BondPricer(initial_curve, kappa)
