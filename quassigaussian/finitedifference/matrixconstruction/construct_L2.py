@@ -1,8 +1,7 @@
 import numpy as np
-import math
 import scipy
 from scipy.sparse import diags
-from quassigaussian.mesher.linear_mesher import Mesher2d
+from quassigaussian.finitedifference.mesher import Mesher2d
 
 ident = lambda x: np.where(x > 0, 1, 0)
 

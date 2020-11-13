@@ -1,8 +1,7 @@
 import numpy as np
-import math
 import scipy
 from scipy.sparse import diags
-from quassigaussian.mesher.linear_mesher import Mesher2d
+from quassigaussian.finitedifference.mesher import Mesher2d
 
 
 class ConstructL1A():
@@ -144,7 +143,7 @@ if __name__ == '__main__':
 
     eta_sq = 0.2
     mu_x = 0.7
-    from quassigaussian.mesher.linear_mesher import create_mesher_2d, calculate_delta
+    from quassigaussian.finitedifference.mesher import create_mesher_2d, calculate_delta
 
     xgrid, ygrid, xv, yv = create_mesher_2d(0, 100, 10, 0, 100, 5)
     delta_p, delta_m = calculate_delta(xgrid)

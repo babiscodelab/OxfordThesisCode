@@ -1,9 +1,8 @@
-from quassigaussian.matrixconstruction.construct_L1 import  ConstructL1A
-from quassigaussian.matrixconstruction.construct_L2 import  ConstructL2
+from quassigaussian.finitedifference.matrixconstruction import  ConstructL1A
+from quassigaussian.finitedifference.matrixconstruction import  ConstructL2
 import numpy as np
-import scipy.linalg as la
-from quassigaussian.matrixconstruction.coefficients import CoefficientConstruction
-from quassigaussian.mesher.linear_mesher import Mesher2d
+from quassigaussian.finitedifference.matrixconstruction import CoefficientConstruction
+from quassigaussian.finitedifference.mesher import Mesher2d
 from quassigaussian.linearalgebra.solve_banded import solve_banded_array
 
 

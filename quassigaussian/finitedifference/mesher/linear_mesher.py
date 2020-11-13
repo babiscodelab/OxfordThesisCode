@@ -21,9 +21,24 @@ class Mesher2d():
         self.tgrid = np.linspace(tmin, tmax, tsize)
         self.delta_t = self.tgrid[1] - self.tgrid[0]
 
-        self.xgrid = np.linspace(xmin, xmax, xsize)
+        xgrid1 = np.linspace(xmin, 0, int(xsize/2))
+        xgrid2 = np.linspace(0, xmax, int(xsize/2))
+        xgrid1 = np.delete(xgrid1, -1)
+        self.xgrid = np.concatenate([xgrid1, xgrid2])
+
+
         self.xdim = len(self.xgrid)
+
+
+        # ygrid1 = np.linspace(ymin, 0, int(ysize/2))
+        # ygrid2 = np.linspace(0, ymax, int(ysize/2))
+        # ygrid1 = np.delete(ygrid1, -1)
+        #
+        # self.ygrid = np.concatenate([ygrid1, ygrid2])
+
         self.ygrid = np.linspace(ymin, ymax, ysize)
+
+
         self.xmesh, self.ymesh = np.meshgrid(self.xgrid, self.ygrid, indexing='ij')
 
         self.delta_px, self.delta_mx = calculate_delta(self.xgrid)

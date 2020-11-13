@@ -3,25 +3,24 @@ import math
 from quassigaussian.instruments import SwapPricer, CapitalX
 from scipy.optimize import fsolve
 import numpy as np
-from quassigaussian.fastcalibration.local_volatility import LinearLocalVolatility
+from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 
 class PiterbargApproximator():
 
-    def __init__(self, g_t, sigma_r: LinearLocalVolatility, swap, swap_pricer: SwapPricer):
+    def __init__(self, g_t, sigma_r: LinearLocalVolatility, swap_pricer: SwapPricer):
         self.g_t = g_t
         self.sigma_r = sigma_r
-        self.swap = swap
         self.swap_pricer = swap_pricer
         self.capital_x = CapitalX(swap_pricer)
 
-    def approximate_parameters(self):
-        lamba_s = self.calculate_lamba_s()
-        b_s = self.calculate_b_s()
-
+    def approximate_parameters(self, swap, x, y, t):
+        lamba_s = self.calculate_lamba_s(swap, x, y, t)
+        b_s = self.calculate_b_s(swap, x, y, t)
+        return lamba_s, b_s
 
     def calculate_lamba_s(self, swap, x, y, t):
 
-        swap_0 = self.swap_pricer.price(self.swap, 0, 0, 0)
+        swap_0 = self.swap_pricer.price(swap, 0, 0, 0)
         y_bar = self._calculate_ybar(t)
         x_bar = self._calculate_xbar(t, swap_0, y_bar, swap)
 
@@ -29,7 +28,7 @@ class PiterbargApproximator():
 
     def calculate_b_s(self, swap, x, y, t):
 
-        swap_0 = self.swap_pricer.price(self.swap, 0, 0, 0)
+        swap_0 = self.swap_pricer.price(swap, 0, 0, 0)
         y_bar = self._calculate_ybar(t)
         x_bar = self._calculate_xbar(t, swap_0, y_bar, swap)
         bs = (swap_0 * self.sigma_r.b_t[t])/((self.sigma_r.alpha_t[0] + self.sigma_r.b_t[t] * x_bar)
