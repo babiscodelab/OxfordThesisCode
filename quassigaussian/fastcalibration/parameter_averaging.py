@@ -1,7 +1,8 @@
 import scipy.integrate
+import numpy as np
 
 def lambda_s_bar(lambda_square: callable, T0):
-        return scipy.integrate.quad(lambda_square, 0, T0)[0] / T0
+        return np.sqrt(scipy.integrate.quad(lambda_square, 0, T0)[0] / T0)
 
 
 def w_s_wrapper(lambda_square):
