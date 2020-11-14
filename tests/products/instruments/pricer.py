@@ -16,7 +16,7 @@ def test_bond_pricer():
 
 
 def test_swap_pricer():
-    swap = Swap(1, 2, 0.5)
+    swap = Swap(1, 20, 0.25)
     tmp_file = r"C:\Users\d80084\Google Drive\01oxford\7 Thesis\code\quasigaussian\data\market_data\libor_curve\usd_libor\sofr_curve.csv"
     initial_curve = LiborCurve.from_file(tmp_file, "2013-05-20")
 
@@ -28,7 +28,7 @@ def test_swap_pricer():
 
 def test_swaption_pricer():
 
-    swap = Swap(1, 2, 0.5)
+    swap = Swap(1, 10, 0.5)
     swaption = Swaption(expiry=1, coupon=0.001,swap=swap)
 
     tmp_file = r"C:\Users\d80084\Google Drive\01oxford\7 Thesis\code\quasigaussian\data\market_data\libor_curve\usd_libor\sofr_curve.csv"
@@ -45,4 +45,4 @@ def test_swaption_pricer():
 
     print("pause")
 
-test_swaption_pricer()
+test_swap_pricer()
