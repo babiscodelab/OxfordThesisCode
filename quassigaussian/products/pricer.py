@@ -89,7 +89,7 @@ class CapitalX():
     def dxds(self, swap: Swap, x: float, y: float, t: float):
         return 1/self.swap_pricer.dsdx(swap, x, y, t)
 
-    def d2ds2(self, swap: Swap, x: float, y: float, t: float):
+    def d2xds2(self, swap: Swap, x: float, y: float, t: float):
 
         dxds = self.dxds(swap, x, y, t)
         dsdx = self.swap_pricer.dsdx(swap, x, y, t)

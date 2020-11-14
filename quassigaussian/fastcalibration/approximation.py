@@ -13,29 +13,19 @@ class PiterbargApproximator():
         self.swap_pricer = swap_pricer
         self.capital_x = CapitalX(swap_pricer)
 
-    def approximate_parameters(self, swap, x, y, t):
-        lambda_s = self.calculate_lambda_s(swap, x, y, t)
-        b_s = self.calculate_b_s(swap, x, y, t)
+    def approximate_parameters(self, swap, t):
+
+        swap_0 = self.swap_pricer.price(swap, 0, 0, 0)
+        y_bar = self._calculate_ybar(t)
+        x_bar = self._calculate_xbar(t, y_bar, swap, swap_0)
+
+        swap_dsdx = self.swap_pricer.dsdx(swap, x_bar, y_bar, t)
+
+        lambda_s = self.sigma_r.calculate_vola(t=t, x=x_bar) * swap_dsdx/swap_0
+        b_s = (swap_0 * self.sigma_r.b_t[t])/((self.sigma_r.alpha_t[t] + self.sigma_r.b_t[t] * x_bar) *swap_dsdx)  \
+        + swap_0*self.swap_pricer.d2sdx2(swap, x_bar, y_bar, t)/(math.pow(swap_dsdx, 2))
+
         return lambda_s, b_s
-
-    def calculate_lambda_s(self, swap, x, y, t):
-
-        swap_0 = self.swap_pricer.price(swap, 0, 0, 0)
-        y_bar = self._calculate_ybar(t)
-        x_bar = self._calculate_xbar(t, swap_0, y_bar, swap)
-
-        return self.sigma_r.calculate_vola(t, x_bar) * self.swap_pricer.dsdx(swap, x_bar, y_bar, t)/swap_0
-
-    def calculate_b_s(self, swap, x, y, t):
-
-        swap_0 = self.swap_pricer.price(swap, 0, 0, 0)
-        y_bar = self._calculate_ybar(t)
-        x_bar = self._calculate_xbar(t, swap_0, y_bar, swap)
-        bs = (swap_0 * self.sigma_r.b_t[t])/((self.sigma_r.alpha_t[0] + self.sigma_r.b_t[t] * x_bar)
-                                             *self.swap_pricer.dsdx(swap, x_bar, y_bar, t))  \
-        + swap_0*math.pow(self.swap_pricer.d2sdx2(swap, x_bar, y_bar, t), 2)/(math.pow(self.swap_pricer.dsdx(swap, x_bar, y_bar, t), 2))
-
-        return bs
 
     def calculate_sigma_0(self, t):
         return self.sigma_r.calculate_vola(x=0, t=t)
@@ -48,25 +38,27 @@ class PiterbargApproximator():
         return np.power(self.g_t(t), 2)*integrate.quad(integrand, 0, t)[0]
 
 
-    def _calculate_x0(self, t, s0, y_bar):
+    def _calculate_x0(self, t, swap, s0, y_bar):
 
-        def _solve_for_x0(x_bar, swap, t, y_bar, s0):
-            self.swap_pricer.price(swap, t, x_bar, y_bar) - s0
+        def _solve_for_x0(x_bar, swap, s0, t, y_bar):
+            return self.swap_pricer.price(swap, x_bar, y_bar, t) - s0
 
-        return fsolve(_solve_for_x0, x0=np.array([0]), args=(t, s0, y_bar))[0]
+        return fsolve(_solve_for_x0, x0=np.array([0]), args=(swap, s0, t, y_bar))[0]
 
 
-    def _calculate_xbar(self, t, s0, y_bar, swap):
+    def _calculate_xbar(self, t, y_bar, swap, s0):
 
-        x0 = self._calculate_x0(t, s0, y_bar)
+        x0 = self._calculate_x0(t, swap, s0, y_bar)
         var_s = self._calculate_var_s(t, swap)
-        x_bar = x0 + var_s*self.capital_x.d2ds2(swap, x0, y_bar, t)
+        x_bar = x0 + var_s*self.capital_x.d2xds2(swap, x0, y_bar, t)
 
         return x_bar
 
     def _calculate_var_s(self, t, swap):
+
         def integrand(s):
-            return math.pow(self.swap_pricer.dsdx(swap, 0, 0, s) * self.calculate_sigma_0(s), 2)
+            return np.power(self.swap_pricer.dsdx(swap, 0, 0, s) * self.calculate_sigma_0(s), 2)
+
         return integrate.quad(integrand, 0, t)
 
 

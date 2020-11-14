@@ -1,6 +1,7 @@
 from quassigaussian.fastcalibration.approximation import PiterbargApproximator
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.pricer import SwapPricer
+from quassigaussian.products.instruments import Swap
 from quassigaussian.curves.libor import LiborCurve
 import numpy as np
 from scipy.interpolate import interp1d
@@ -30,4 +31,12 @@ def test_piterbarg_y_bar():
     y_bar_expected = np.exp(-2*kappa*t)*(np.exp(2*kappa*t) - 1)/(2*kappa)
 
     np.testing.assert_approx_equal(y_bar_actual, y_bar_expected)
+
+    swap = Swap(0, 1, frequency=0.5)
+    swap_pricer.price(swap, 0, 0, 0)
+    swap_0 = piterbarg_approx.swap_pricer.price(swap, 0, 0, 0)
+
+    x0 = piterbarg_approx._calculate_x0(t, swap, swap_0, y_bar_actual)
+
+    print("pause")
 
