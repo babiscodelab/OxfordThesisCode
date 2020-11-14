@@ -59,7 +59,7 @@ class PiterbargApproximator():
         def integrand(s):
             return np.power(self.swap_pricer.dsdx(swap, 0, 0, s) * self.calculate_sigma_0(s), 2)
 
-        return integrate.quad(integrand, 0, t)
+        return integrate.quad(integrand, 0, t)[0]
 
 
     def _calculate_ksi(self, t, s, swap, s0):

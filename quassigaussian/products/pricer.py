@@ -110,7 +110,7 @@ class AnnuityPricer():
         res = 0
 
         for bond in bond_list:
-            res += freq * bond.price(x, y, t) * calculate_G(kappa, t, bond.maturity)
+            res += freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
         return res
 
     def annuity_price(self, t: float, x: float, y: float, freq: float, bond_list: list):
@@ -129,7 +129,7 @@ class AnnuityPricer():
 
         res = 0
         for bond in bond_list:
-            res += freq * bond.price(x, y, t) * math.pow(calculate_G(kappa, t, bond.maturity), 2)
+            res += freq * self.bond_pricer.price(bond, x, y, t) * math.pow(calculate_G(kappa, t, bond.maturity), 2)
 
         return res
 
