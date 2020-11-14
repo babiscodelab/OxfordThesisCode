@@ -14,11 +14,11 @@ class PiterbargApproximator():
         self.capital_x = CapitalX(swap_pricer)
 
     def approximate_parameters(self, swap, x, y, t):
-        lamba_s = self.calculate_lamba_s(swap, x, y, t)
+        lambda_s = self.calculate_lambda_s(swap, x, y, t)
         b_s = self.calculate_b_s(swap, x, y, t)
-        return lamba_s, b_s
+        return lambda_s, b_s
 
-    def calculate_lamba_s(self, swap, x, y, t):
+    def calculate_lambda_s(self, swap, x, y, t):
 
         swap_0 = self.swap_pricer.price(swap, 0, 0, 0)
         y_bar = self._calculate_ybar(t)
@@ -43,9 +43,9 @@ class PiterbargApproximator():
     def _calculate_ybar(self, t):
 
         def integrand(s):
-            return math.pow(self.calculate_sigma_0(s) * 1/self.g_t(s), 2)
+            return np.power(self.calculate_sigma_0(s) * 1/self.g_t(s), 2)
 
-        return self.g_t(t)*integrate.quad(integrand, 0, 1)
+        return np.power(self.g_t(t), 2)*integrate.quad(integrand, 0, t)[0]
 
 
     def _calculate_x0(self, t, s0, y_bar):
