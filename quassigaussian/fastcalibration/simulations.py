@@ -41,6 +41,7 @@ class ProcessSimulator():
         y = np.zeros(shape=(self.number_samples, self.number_time_steps+1))
 
         for i in np.arange(0, self.number_samples):
+            print("Simulation: " + str(i))
             for j in np.arange(0, self.number_time_steps):
 
                 t = self.dt * j
@@ -49,9 +50,9 @@ class ProcessSimulator():
 
                 if annuity_measure:
                     mu_x += 1/self.annuity_pricer.annuity_price(t, x[i][j], y[i][j], annuity_measure) * \
-                            self.annuity_pricer.annuity_dx(t, x[i][j], y[i][j], kappa, annuity_measure) * eta
+                            self.annuity_pricer.annuity_dx(t, x[i][j], y[i][j], kappa, annuity_measure) * np.power(eta, 2)
 
                 x[i][j+1] = x[i][j] + mu_x * self.dt + eta * random_numbers[i][j]
                 y[i][j+1] = y[i][j] + (np.power(eta, 2) - 2*kappa*y[i][j]) * self.dt
 
-        return ResultSimulatorObj(x, y, self.time_grid, self.number_samples, self.number_time_steps, kappa, local_volatility)
+        return ResultSimulatorObj(x, y, self.time_grid, self.number_samples, self.number_time_steps, kappa, local_volatility, annuity_measure)
