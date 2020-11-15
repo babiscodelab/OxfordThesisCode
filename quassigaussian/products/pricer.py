@@ -100,12 +100,12 @@ class AnnuityPricer():
     def __init__(self, bond_pricer: BondPricer):
         self.bond_pricer = bond_pricer
 
-    def annuity_times_g(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
-
-        res = 0
-        for bond in annuity.bond_list:
-            res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
-        return res
+    # def annuity_times_g(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
+    #
+    #     res = 0
+    #     for bond in annuity.bond_list:
+    #         res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
+    #     return res
 
     def annuity_price(self, t: float, x: float, y: float, annuity: Annuity):
 
@@ -117,7 +117,12 @@ class AnnuityPricer():
 
 
     def annuity_dx(self, t: float, x: float, y: float,  kappa: float, annuity: Annuity):
-        return - self.annuity_times_g(t, x, y, kappa, annuity)
+
+        res = 0
+        for bond in annuity.bond_list:
+            res += - annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
+
+        return res
 
     def annuity_d2x(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
 
