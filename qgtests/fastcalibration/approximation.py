@@ -32,11 +32,16 @@ def test_piterbarg_y_bar():
 
     np.testing.assert_approx_equal(y_bar_actual, y_bar_expected)
 
-    swap = Swap(0, 1, frequency=0.5)
-    swap_pricer.price(swap, 0, 0, 0)
+    swap = Swap(1, 10, frequency=0.5)
+
     swap_0 = piterbarg_approx.swap_pricer.price(swap, 0, 0, 0)
 
-    x0 = piterbarg_approx._calculate_x0(t, swap, swap_0, y_bar_actual)
+    x0 = piterbarg_approx._calculate_x0(t, swap, swap_0, 0.01)
 
+    x_bar = piterbarg_approx._calculate_xbar(t, y_bar_actual, swap, swap_0)
+
+    swap_price = swap_pricer.price(swap, x=0, y=0, t=t)
+
+    x_simple = piterbarg_approx.x_bar_simple(t, swap_price, swap)
     print("pause")
 
