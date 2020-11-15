@@ -22,7 +22,7 @@ class PiterbargApproximator():
         swap_dsdx = self.swap_pricer.dsdx(swap, x_bar, y_bar, t)
 
         lambda_s = self.sigma_r.calculate_vola(t=t, x=x_bar) * swap_dsdx/swap_0
-        b_s = (swap_0 * self.sigma_r.b_t[t])/((self.sigma_r.alpha_t[t] + self.sigma_r.b_t[t] * x_bar) *swap_dsdx)  \
+        b_s = (swap_0 * self.sigma_r.b_t(t))/((self.sigma_r.alpha_t(t) + self.sigma_r.b_t(t) * x_bar) *swap_dsdx)  \
         + swap_0*self.swap_pricer.d2sdx2(swap, x_bar, y_bar, t)/(math.pow(swap_dsdx, 2))
 
         return lambda_s, b_s
@@ -85,3 +85,8 @@ class PiterbargApproximator():
             return res2
         else:
             return res1
+
+
+    def x_bar_simple(self, t, swap_price, swap):
+        swap_xy_0 = self.swap_pricer.price(swap, x=0, y=0, t=t)
+        return (swap_price - swap_xy_0)/self.swap_pricer.dsdx(swap, x=0, y=0, t=t)
