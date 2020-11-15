@@ -22,6 +22,7 @@ class Swap():
 
         payment_schedule = arange(self.start, self.TN + 0.0000001, self.frequency)
         self.bond_list = self.get_bond_list(payment_schedule)
+        self.annuity = Annuity(self.bond_list, self.frequency)
 
     def get_bond_list(self, payment_schedule):
 
@@ -39,4 +40,8 @@ class Swaption():
         self.swap = swap
 
 
+class Annuity():
 
+    def __init__(self, bond_list, freq):
+        self.bond_list = bond_list
+        self.freq = freq

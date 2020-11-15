@@ -3,7 +3,7 @@ import math
 import numpy as np
 from scipy.stats import norm
 
-from quassigaussian.products.instruments import Bond, Swap, Swaption
+from quassigaussian.products.instruments import Bond, Swap, Swaption, Annuity
 from quassigaussian.curves.libor import Curve
 
 class BondPricer():
@@ -35,22 +35,22 @@ class SwapPricer():
 
     def price(self, swap: Swap, x: float, y: float, t: float):
         return (self.bond_pricer.price(swap.bond_T0, x, y, t) -
-                self.bond_pricer.price(swap.bond_TN, x, y, t)) / self.annuity_pricer.annuity_price(t, x, y, swap.frequency, swap.bond_list)
+                self.bond_pricer.price(swap.bond_TN, x, y, t)) / self.annuity_pricer.annuity_price(t, x, y, swap.annuity)
 
 
     def dsdx(self, swap: Swap, x: float, y: float, t: float):
 
-        annuity = self.annuity_pricer.annuity_price(t, x, y, swap.frequency, swap.bond_list)
+        annuity_price = self.annuity_pricer.annuity_price(t, x, y, swap.annuity)
 
-        res = -1/annuity * \
+        res = -1/annuity_price * \
         (self.bond_pricer.price(swap.bond_T0, x, y, t) * calculate_G(self.kappa, t, swap.bond_T0.maturity) -
          self.bond_pricer.price(swap.bond_TN, x, y, t) * calculate_G(self.kappa, t, swap.bond_TN.maturity)) +\
-        self.price(swap, x, y, t)/annuity * (self.annuity_pricer.annuity_times_g(t, x, y, swap.frequency, self.kappa, swap.bond_list)) / annuity
+        self.price(swap, x, y, t)/annuity_price * (self.annuity_pricer.annuity_times_g(t, x, y, self.kappa, swap.annuity))
 
         return res
 
     def dsdx_v2(self, swap: Swap, x: float, y: float, t: float):
-        annuity = self.annuity_pricer.annuity_price(t, x, y, swap.frequency, swap.bond_list)
+        annuity = self.annuity_pricer.annuity_price(t, x, y, swap.annuity)
 
         res = (self.bond_pricer.dpdx(swap.bond_T0, x, y, t) - self.bond_pricer.dpdx(swap.bond_TN, x, y, t))/annuity + \
               - (self.bond_pricer.price(swap.bond_T0, x, y, t) - self.bond_pricer.price(swap.bond_TN, x, y, t))\
@@ -60,9 +60,9 @@ class SwapPricer():
 
     def d2sdx2(self, swap: Swap, x: float, y: float, t: float):
 
-        annuity = self.annuity_pricer.annuity_price(t, x, y, swap.frequency, swap.bond_list)
-        dannuity = self.annuity_pricer.annuity_dx(t, x, y, swap.frequency, self.kappa, swap.bond_list)
-        d2annuity = self.annuity_pricer.annuity_d2x(t, x, y, swap.frequency, self.kappa, swap.bond_list)
+        annuity = self.annuity_pricer.annuity_price(t, x, y, swap.annuity)
+        dannuity = self.annuity_pricer.annuity_dx(t, x, y, self.kappa, swap.annuity)
+        d2annuity = self.annuity_pricer.annuity_d2x(t, x, y, self.kappa, swap.annuity)
 
         pT0 = self.bond_pricer.price(swap.bond_T0, x, y, t)
         pTN = self.bond_pricer.price(swap.bond_TN, x, y, t)
@@ -73,12 +73,9 @@ class SwapPricer():
         d2pdt2TN = self.bond_pricer.d2pdx2(swap.bond_TN, x, y, t)
 
         return (d2pdt2T0-d2pdt2TN)*1/annuity \
-               - 2*(dpdtT0 - dpdtTN)*(1/math.pow(annuity, 2)) * dannuity \
-               + 2*(pT0 - pTN)*(1/math.pow(annuity, 3)) * dannuity \
-               - (pT0 - pTN)/(1/math.pow(annuity, 2)) * math.pow(d2annuity, 2)
-
-
-
+               - 2*(dpdtT0 - dpdtTN)*(1/np.power(annuity, 2)) * dannuity \
+               + 2*(pT0 - pTN)*(1/np.power(annuity, 3)) * np.power(dannuity, 2) \
+               - (pT0 - pTN)/(1/np.power(annuity, 2)) * d2annuity
 
 
 class CapitalX():
@@ -98,38 +95,35 @@ class CapitalX():
         return -d2sdx2*dxds/dsdx
 
 
-
-
 class AnnuityPricer():
 
     def __init__(self, bond_pricer: BondPricer):
         self.bond_pricer = bond_pricer
 
-    def annuity_times_g(self, t: float, x: float, y: float, freq: float, kappa: float, bond_list: list):
+    def annuity_times_g(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
 
         res = 0
-
-        for bond in bond_list:
-            res += freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
+        for bond in annuity.bond_list:
+            res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
         return res
 
-    def annuity_price(self, t: float, x: float, y: float, freq: float, bond_list: list):
-
-        annuity = 0
-        for bond in bond_list:
-            annuity += freq*self.bond_pricer.price(bond, x, y, t)
-
-        return annuity
-
-
-    def annuity_dx(self, t: float, x: float, y: float, freq: float, kappa: float, bond_list: list):
-        return - self.annuity_times_g(t, x, y, freq, kappa, bond_list)
-
-    def annuity_d2x(self, t: float, x: float, y: float, freq: float, kappa: float, bond_list: list):
+    def annuity_price(self, t: float, x: float, y: float, annuity: Annuity):
 
         res = 0
-        for bond in bond_list:
-            res += freq * self.bond_pricer.price(bond, x, y, t) * math.pow(calculate_G(kappa, t, bond.maturity), 2)
+        for bond in annuity.bond_list:
+            res += annuity.freq*self.bond_pricer.price(bond, x, y, t)
+
+        return res
+
+
+    def annuity_dx(self, t: float, x: float, y: float,  kappa: float, annuity: Annuity):
+        return - self.annuity_times_g(t, x, y, kappa, annuity)
+
+    def annuity_d2x(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
+
+        res = 0
+        for bond in annuity.bond_list:
+            res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * math.pow(calculate_G(kappa, t, bond.maturity), 2)
 
         return res
 
@@ -146,7 +140,7 @@ class SwaptionPricer():
     def price(self, swaption: Swaption):
 
         annuity_pricer = AnnuityPricer(self.bond_pricer)
-        annuity_0 = annuity_pricer.annuity_price(0, 0, 0, swaption.swap.frequency, swaption.swap.bond_list)
+        annuity_0 = annuity_pricer.annuity_price(0, 0, 0, swaption.swap.annuity)
         swap_0 = self.swap_pricer.price(swaption.swap, 0, 0, 0)
 
         dplus, dminus = self.d_plus_minus(swaption)
