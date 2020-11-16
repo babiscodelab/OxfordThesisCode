@@ -75,7 +75,7 @@ class SwapPricer():
         return (d2pdt2T0-d2pdt2TN)*1/annuity \
                - 2*(dpdtT0 - dpdtTN)*(1/np.power(annuity, 2)) * dannuity \
                + 2*(pT0 - pTN)*(1/np.power(annuity, 3)) * np.power(dannuity, 2) \
-               - (pT0 - pTN)/(1/np.power(annuity, 2)) * d2annuity
+               - (pT0 - pTN)/(np.power(annuity, 2)) * d2annuity
 
 
 class CapitalX():
@@ -100,12 +100,12 @@ class AnnuityPricer():
     def __init__(self, bond_pricer: BondPricer):
         self.bond_pricer = bond_pricer
 
-    # def annuity_times_g(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
-    #
-    #     res = 0
-    #     for bond in annuity.bond_list:
-    #         res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
-    #     return res
+    def annuity_times_g(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
+
+        res = 0
+        for bond in annuity.bond_list:
+            res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
+        return res
 
     def annuity_price(self, t: float, x: float, y: float, annuity: Annuity):
 
