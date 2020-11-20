@@ -1,7 +1,7 @@
 import numpy as np
 import scipy
 from scipy.sparse import diags
-from quassigaussian.finitedifference.mesher import Mesher2d
+from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 
 
 class ConstructL1A():
