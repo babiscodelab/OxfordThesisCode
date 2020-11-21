@@ -12,6 +12,9 @@ class BondPricer():
         self.kappa = kappa
         self.initial_curve = initial_curve
 
+    def maturity_price(self, bond, x, y):
+        return np.ones(x.shape)
+
     def price(self, bond: Bond, x: float, y: float, t: float):
         G = calculate_G(self.kappa, t, bond.maturity)
         return self.initial_curve.get_discount(bond.maturity)/self.initial_curve.get_discount(t) * np.exp(-G*x - 0.5*math.pow(G, 2)*y)
@@ -31,6 +34,10 @@ class SwapPricer():
         self.initial_curve = initial_curve
         self.bond_pricer = BondPricer(initial_curve, kappa)
         self.annuity_pricer = AnnuityPricer(self.bond_pricer)
+
+
+    def maturity_price(self, swap, x_mesh, y_mesh):
+        return self.price(swap, x_mesh, y_mesh, swap.bond_T0.maturity)
 
 
     def price(self, swap: Swap, x: float, y: float, t: float):
@@ -141,6 +148,10 @@ class SwaptionPricer():
         self.b_s = b_s
         self.swap_pricer = swap_pricer
         self.bond_pricer = bond_pricer
+
+    def maturity_price(self, swaption: Swaption, x_mesh, y_mesh):
+        swap_price = self.swap_pricer.maturity_price(swaption.swap, x_mesh, y_mesh)
+        return np.maximum(swap_price-swaption.coupon, 0)
 
     def price(self, swaption: Swaption):
 
