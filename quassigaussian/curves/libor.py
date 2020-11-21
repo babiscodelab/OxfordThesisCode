@@ -2,7 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from abc import ABC, abstractmethod
 import pandas as pd
-
+from scipy.misc import derivative
 
 class Curve(ABC):
 
@@ -25,6 +25,9 @@ class LiborCurve(Curve):
     def construct_libor_curve_func(self, disc_grid, time_grid):
         rate = - np.log(disc_grid)
         return interp1d(time_grid, rate, fill_value="extrapolate")
+
+    def get_inst_forward(self, t):
+        return derivative(self.interp_rate_func, t)
 
     @classmethod
     def from_file(self, file_path, date):
