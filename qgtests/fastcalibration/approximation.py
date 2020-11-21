@@ -9,10 +9,10 @@ from scipy.interpolate import interp1d
 
 def test_piterbarg_y_bar():
 
-    kappa = 0.2
+    kappa = 0.001
     x = np.arange(0, 31)
-    y = np.ones(31)
-    t = 0.5
+    y = np.ones(31)*0.1
+    t = 15
 
 
     lambda_t = interp1d(x, y, kind='previous')
@@ -30,13 +30,13 @@ def test_piterbarg_y_bar():
     y_bar_actual = piterbarg_approx._calculate_ybar(t)
     y_bar_expected = np.exp(-2*kappa*t)*(np.exp(2*kappa*t) - 1)/(2*kappa)
 
-    np.testing.assert_approx_equal(y_bar_actual, y_bar_expected)
+    #np.testing.assert_approx_equal(y_bar_actual, y_bar_expected)
 
-    swap = Swap(1, 10, frequency=0.5)
+    swap = Swap(29, 30, frequency=0.5)
 
     swap_0 = piterbarg_approx.swap_pricer.price(swap, 0, 0, 0)
 
-    x0 = piterbarg_approx._calculate_x0(t, swap, swap_0, 0.01)
+    x0 = piterbarg_approx._calculate_x0(t, swap, swap_0, y_bar_actual)
 
     x_bar = piterbarg_approx._calculate_xbar(t, y_bar_actual, swap, swap_0)
 
@@ -45,3 +45,4 @@ def test_piterbarg_y_bar():
     x_simple = piterbarg_approx.x_bar_simple(t, swap_price, swap)
     print("pause")
 
+test_piterbarg_y_bar()

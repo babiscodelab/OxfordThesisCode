@@ -2,7 +2,8 @@
 from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer
 from quassigaussian.products.instruments import Bond, Swaption, Swap
 from quassigaussian.curves.libor import LiborCurve
-
+import numpy as np
+import scipy.integrate as integrate
 
 def test_bond_pricer():
 
@@ -14,6 +15,20 @@ def test_bond_pricer():
     bond_pricer.price(bond, x=0, y=0, t=0)
     print("pause")
 
+
+def test_forward_rate_pricer():
+
+    bond = Bond(1)
+    tmp_file = r"C:\Users\d80084\Google Drive\01oxford\7 Thesis\code\quasigaussian\data\market_data\libor_curve\usd_libor\sofr_curve.csv"
+    initial_curve = LiborCurve.from_file(tmp_file, "2013-05-20")
+    bond_pricer = BondPricer(initial_curve, 0.2)
+    initial_curve.get_discount(0.3)
+    bond0 = bond_pricer.price(bond, x=0, y=0, t=0)
+
+    def calculate_bond_forward(u):
+        return np.exp(-initial_curve.get_inst_forward(u))
+
+    bond0_v2 = integrate.quad(calculate_bond_forward, 0, bond.maturity)
 
 def test_swap_pricer():
     swap = Swap(1, 20, 0.25)
