@@ -4,9 +4,9 @@ import numpy as np
 
 theta = 0.5
 mesher = Mesher2d()
-mesher.create_mesher_2d(0, 1, 100, 0, 0.99, 100, 0, 0.9, 10)
+mesher.create_mesher_2d(0, 1, 200, -0.05, 0.05, 201, 0, 0.001, 20)
 initial_curve = mesher.tgrid*0.2
-kappa = 0.2
+kappa = 0.3
 
 douglas_rachford = DouglasRachfordAdi(theta, mesher, initial_curve, kappa)
 

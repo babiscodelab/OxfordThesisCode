@@ -19,13 +19,13 @@ class CoefficientConstruction():
         return (self.ymesh - self.kappa * self.xmesh)
 
     def eta_sq_calculate(self, t):
-        return 1*np.ones(self.xmesh.shape)
+        return 0.0001*np.ones(self.xmesh.shape)
 
     def mu_y_calculate(self, eta_sq):
         return eta_sq - 2*self.kappa*self.ymesh
 
     def r_calculate(self, t):
-        return self.xmesh[:, 0]*0 + 0.04
+        return self.xmesh[:, 0] + 0.04
 
 
 
