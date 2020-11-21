@@ -27,7 +27,7 @@ class CoefficientConstruction():
         return eta_sq - 2*self.kappa*self.ymesh
 
     def r_calculate(self, t):
-        return  self.initial_curve.get_inst_forward(t) + self.xmesh[:, 0]
+        return 0.04 + self.xmesh[:, 0]
 
 
 

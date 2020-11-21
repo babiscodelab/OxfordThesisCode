@@ -8,7 +8,7 @@ from qgtests.utis import get_mock_yield_curve
 
 def test_adi():
 
-    maturity = 10
+    maturity = 1
 
     linear_local_volatility = LinearLocalVolatility.from_const(30, 0.1, 0.1, 0.1)
     linear_local_volatility = LinearLocalVolatility.from_const(30, 0.1, 0.1, 0)
@@ -20,8 +20,8 @@ def test_adi():
     t_min = 0
     t_max = maturity
     t_grid_size = 100
-    x_grid_size = 400
-    y_grid_size = 20
+    x_grid_size = 200
+    y_grid_size = 40
 
     adi_runner = AdiRunner(theta, kappa, initial_curve, linear_local_volatility, t_min, t_max, t_grid_size, x_grid_size, y_grid_size)
 
