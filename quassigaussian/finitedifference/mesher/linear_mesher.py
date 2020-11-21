@@ -29,13 +29,6 @@ class Mesher2d():
 
         self.xdim = len(self.xgrid)
 
-
-        # ygrid1 = np.linspace(ymin, 0, int(ysize/2))
-        # ygrid2 = np.linspace(0, ymax, int(ysize/2))
-        # ygrid1 = np.delete(ygrid1, -1)
-        #
-        # self.ygrid = np.concatenate([ygrid1, ygrid2])
-
         self.ygrid = np.linspace(ymin, ymax, ysize)
 
 

@@ -1,17 +1,18 @@
+import numpy as np
 from quassigaussian.finitedifference.matrixconstruction.construct_L1 import  ConstructL1A
 from quassigaussian.finitedifference.matrixconstruction.construct_L2 import  ConstructL2
-import numpy as np
 from quassigaussian.finitedifference.matrixconstruction.coefficients import CoefficientConstruction
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 from quassigaussian.linearalgebra.solve_banded import solve_banded_array
-
+from quassigaussian.curves.libor import LiborCurve
+from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 
 class DouglasRachfordAdi():
 
-    def __init__(self, theta, mesher: Mesher2d, initial_curve, kappa):
+    def __init__(self, theta, mesher: Mesher2d, initial_curve: LiborCurve, kappa, local_volatility: LinearLocalVolatility):
         self.mesher = mesher
         self.theta = theta
-        self.coefficient_constr = CoefficientConstruction(mesher.xmesh, mesher.ymesh, initial_curve, kappa)
+        self.coefficient_constr = CoefficientConstruction(mesher.xmesh, mesher.ymesh, initial_curve, kappa, local_volatility)
 
 
     def solve(self, v_init):
