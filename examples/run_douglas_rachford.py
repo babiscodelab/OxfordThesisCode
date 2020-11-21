@@ -1,5 +1,5 @@
-from quassigaussian.finitedifference.adi import DouglasRachfordAdi
-from quassigaussian.finitedifference.mesher import Mesher2d
+from quassigaussian.finitedifference.adi.douglas_rachford import DouglasRachfordAdi
+from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 import numpy as np
 
 theta = 0.5
