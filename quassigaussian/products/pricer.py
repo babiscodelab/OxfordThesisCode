@@ -2,7 +2,7 @@ from quassigaussian.utils import calculate_G
 import math
 import numpy as np
 from scipy.stats import norm
-
+import scipy.integrate as integrate
 from quassigaussian.products.instruments import Bond, Swap, Swaption, Annuity
 from quassigaussian.curves.libor import Curve
 
@@ -25,6 +25,13 @@ class BondPricer():
     def d2pdx2(self, bond, x, y, t):
         return self.price(bond, x, y, t) * math.pow(calculate_G(self.kappa, t, bond.maturity), 2)
 
+
+    def calculate_price_from_forward(self, bond: Bond):
+
+        def forward_integral(u):
+            return self.initial_curve.get_inst_forward(u)
+
+        return np.exp(-integrate.quad(forward_integral, 0, bond.maturity)[0])
 
 
 class SwapPricer():
