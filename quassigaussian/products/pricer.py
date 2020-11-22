@@ -160,7 +160,7 @@ class SwaptionPricer():
         swap_price = self.swap_pricer.maturity_price(swaption.swap, x_mesh, y_mesh)
         return np.maximum(swap_price-swaption.coupon, 0)
 
-    def price(self, swaption: Swaption):
+    def black76_price(self, swaption: Swaption):
 
         annuity_pricer = AnnuityPricer(self.bond_pricer)
         annuity_0 = annuity_pricer.annuity_price(0, 0, 0, swaption.swap.annuity)
