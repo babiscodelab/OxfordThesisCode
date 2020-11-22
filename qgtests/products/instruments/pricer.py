@@ -16,19 +16,30 @@ def test_bond_pricer():
     print("pause")
 
 
-def test_forward_rate_pricer():
+def test_forward_rate_pricer_from_file():
 
-    bond = Bond(1)
+    bond = Bond(10)
     tmp_file = r"C:\Users\d80084\Google Drive\01oxford\7 Thesis\code\quasigaussian\data\market_data\libor_curve\usd_libor\sofr_curve.csv"
     initial_curve = LiborCurve.from_file(tmp_file, "2013-05-20")
+
     bond_pricer = BondPricer(initial_curve, 0.2)
-    initial_curve.get_discount(0.3)
-    bond0 = bond_pricer.price(bond, x=0, y=0, t=0)
+    expected_price = bond_pricer.price(bond, 0, 0, 0)
+    actual_price = bond_pricer.calculate_price_from_forward(bond)
 
-    def calculate_bond_forward(u):
-        return np.exp(-initial_curve.get_inst_forward(u))
+    np.testing.assert_approx_equal(expected_price, actual_price)
 
-    bond0_v2 = integrate.quad(calculate_bond_forward, 0, bond.maturity)
+
+
+def test_forward_rate_pricer_from_constant_curve():
+
+    bond = Bond(10)
+    initial_curve = LiborCurve.from_constant_rate(0.04)
+    bond_pricer = BondPricer(initial_curve, 0.2)
+
+    expected_price = bond_pricer.price(bond, 0, 0, 0)
+    actual_price = bond_pricer.calculate_price_from_forward(bond)
+
+    np.testing.assert_approx_equal(expected_price, actual_price)
 
 def test_swap_pricer():
     swap = Swap(1, 20, 0.25)
@@ -59,5 +70,3 @@ def test_swaption_pricer():
     price = swaption_pricer.price(swaption)
 
     print("pause")
-
-test_swap_pricer()
