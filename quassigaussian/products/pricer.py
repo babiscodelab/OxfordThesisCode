@@ -5,6 +5,7 @@ from scipy.stats import norm
 import scipy.integrate as integrate
 from quassigaussian.products.instruments import Bond, Swap, Swaption, Annuity
 from quassigaussian.curves.libor import Curve
+from scipy.optimize import fsolve
 
 class BondPricer():
 
@@ -150,15 +151,24 @@ class AnnuityPricer():
 
 class SwaptionPricer():
 
+    def __init__(self, swap_pricer):
+        self.swap_pricer = swap_pricer
+
+    def maturity_price(self, swaption: Swaption, x_mesh, y_mesh):
+
+        swap_fair_value_strike = self.swap_pricer.price(swaption.swap, x_mesh, y_mesh, swaption.expiry)
+        return np.maximum(swap_fair_value_strike - swaption.coupon, 0) * \
+               self.swap_pricer.annuity_pricer.annuity_price(swaption.expiry, x_mesh, y_mesh, swaption.swap.annuity)
+
+
+class Black76Pricer():
+
     def __init__(self, lambda_s: float, b_s: float, swap_pricer: SwapPricer, bond_pricer: BondPricer):
         self.lambda_s = lambda_s
         self.b_s = b_s
         self.swap_pricer = swap_pricer
         self.bond_pricer = bond_pricer
 
-    def maturity_price(self, swaption: Swaption, x_mesh, y_mesh):
-        swap_price = self.swap_pricer.maturity_price(swaption.swap, x_mesh, y_mesh)
-        return np.maximum(swap_price-swaption.coupon, 0)
 
     def black76_price(self, swaption: Swaption):
 
@@ -187,3 +197,15 @@ class SwaptionPricer():
         dminus = (d - plus)/denominator
 
         return dplus, dminus
+
+
+def find_implied_black_vola(swaption_value, swaption, swap_pricer, bond_pricer):
+
+    def find_root(volatility):
+        black_pricer = Black76Pricer(volatility, 1, swap_pricer, bond_pricer)
+        calculated_swaption_price = black_pricer.black76_price(swaption)
+        return swaption_value - calculated_swaption_price
+
+    implied_vola = fsolve(find_root, x0=np.array([0]))
+
+    return implied_vola
