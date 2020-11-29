@@ -34,10 +34,11 @@ class Swap():
 
 class Swaption():
 
-    def __init__(self, expiry: float, coupon: float, swap: Swap):
+    def __init__(self, expiry: float, coupon: float, swap: Swap, call: bool = True):
         self.expiry = expiry
         self.coupon = coupon
         self.swap = swap
+        self.call = call
 
 
 class Annuity():
