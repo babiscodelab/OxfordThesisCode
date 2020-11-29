@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
-from quassigaussian.fastcalibration.simulations import ResultSimulatorObj
+from quassigaussian.montecarlo.simulations import ResultSimulatorObj
 matplotlib.rcParams['text.usetex'] = True
 
 class QuasiGaussianPlotter():

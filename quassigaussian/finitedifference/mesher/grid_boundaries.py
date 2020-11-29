@@ -1,5 +1,5 @@
 import numpy as np
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.volatility.local_volatility import LinearLocalVolatility, LocalVolatility
 import scipy.integrate as integrate
 
 def calculate_x_boundaries(y, kappa, maturity, volatility: LinearLocalVolatility):
@@ -14,14 +14,14 @@ def calculate_x_boundaries(y, kappa, maturity, volatility: LinearLocalVolatility
     return x_min, x_max
 
 
-def calculate_x_boundaries2(maturity, volatility: LinearLocalVolatility, alpha=5):
+def calculate_x_boundaries2(maturity, volatility: LocalVolatility, alpha=5):
 
     x_max = alpha * volatility.calculate_vola(0, 0, 0) * np.sqrt(maturity)
     x_min = -alpha * volatility.calculate_vola(0, 0, 0) * np.sqrt(maturity)
 
     return x_min, x_max
 
-def calculate_y_boundaries(maturity, kappa, volatility: LinearLocalVolatility, alpha=5):
+def calculate_y_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5):
 
     def exp_y_integral(u):
         eta_square = np.power(volatility.calculate_vola(u, 0, 0), 2)

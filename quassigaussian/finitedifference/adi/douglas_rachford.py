@@ -27,7 +27,8 @@ class DouglasRachfordAdi():
         for time_k in time_grid_reversed[1:]:
             print(time_k)
             v_old = v_new.copy()
-            self.coefficient_constr.update_coefficients(time_k)
+            # the coefficients are valued are t_theta
+            self.coefficient_constr.update_coefficients(time_k+self.mesher.delta_t*(1-self.theta))
             v_new = self.solve_eq(v_old, self.coefficient_constr.mu_x, self.coefficient_constr.mu_y,
                           self.coefficient_constr.eta_sq, self.coefficient_constr.r)
 
