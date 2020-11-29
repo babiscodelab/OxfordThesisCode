@@ -1,5 +1,5 @@
 import pytest
-from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer
+from quassigaussian.products.pricer import BondPricer, SwapPricer, Black76Pricer, find_implied_black_vola
 from quassigaussian.products.instruments import Bond, Swaption, Swap
 from quassigaussian.curves.libor import LiborCurve
 import numpy as np
@@ -69,7 +69,28 @@ def test_black_swaption_pricer():
     swaption = Swaption(expiry=5, coupon=coupon, swap=swap)
 
 
-    swaption_pricer = SwaptionPricer(lambda_s=0.2, b_s=1, swap_pricer=swap_pricer, bond_pricer=bond_pricer)
+    swaption_pricer = Black76Pricer(lambda_s=0.2, b_s=1, swap_pricer=swap_pricer, bond_pricer=bond_pricer)
     swaption_value = 100*swaption_pricer.black76_price(swaption)
 
     np.testing.assert_approx_equal(swaption_value, 2.07, significant=4)
+
+
+def test_implied_black_vola():
+
+    kappa = 0.3
+    swap = Swap(5, 8, 0.5)
+    initial_curve = LiborCurve.from_constant_rate(0.06)
+
+    bond_pricer = BondPricer(initial_curve, kappa=kappa)
+    swap_pricer = SwapPricer(initial_curve, kappa=kappa)
+
+    coupon = 0.062
+    swaption = Swaption(expiry=5, coupon=coupon, swap=swap)
+
+
+    swaption_pricer = Black76Pricer(lambda_s=0.2, b_s=1, swap_pricer=swap_pricer, bond_pricer=bond_pricer)
+    swaption_value = swaption_pricer.black76_price(swaption)
+
+    implied_vola = find_implied_black_vola(swaption_value, swaption, swap_pricer, bond_pricer)
+
+    np.testing.assert_approx_equal(implied_vola, 0.2, significant=4)

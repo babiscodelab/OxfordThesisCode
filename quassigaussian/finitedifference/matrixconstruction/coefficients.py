@@ -21,7 +21,7 @@ class CoefficientConstruction():
         return (self.ymesh - self.kappa * self.xmesh)
 
     def eta_sq_calculate(self, t):
-        return np.square(self.local_volatility.calculate_vola(t, self.xmesh))
+        return np.square(self.local_volatility.calculate_vola(t, self.xmesh, self.ymesh))
 
     def mu_y_calculate(self, eta_sq):
         return eta_sq - 2*self.kappa*self.ymesh
