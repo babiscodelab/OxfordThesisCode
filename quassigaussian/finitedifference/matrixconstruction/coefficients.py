@@ -1,15 +1,13 @@
-from quassigaussian.curves.libor import LiborCurve
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+
 import numpy as np
 
 class CoefficientConstruction():
 
-    def __init__(self, xmesh, ymesh, initial_curve: LiborCurve, kappa, local_volatility: LinearLocalVolatility):
+    def __init__(self, xmesh, ymesh, initial_curve, kappa):
         self.xmesh = xmesh
         self.ymesh = ymesh
         self.initial_curve = initial_curve
         self.kappa = kappa
-        self.local_volatility = local_volatility
 
     def update_coefficients(self, t):
         self.mu_x = self.mu_x_calculate()
@@ -21,13 +19,13 @@ class CoefficientConstruction():
         return (self.ymesh - self.kappa * self.xmesh)
 
     def eta_sq_calculate(self, t):
-        return self.local_volatility.calculate_vola(t, self.xmesh)
+        return 0.0001*np.ones(self.xmesh.shape)
 
     def mu_y_calculate(self, eta_sq):
         return eta_sq - 2*self.kappa*self.ymesh
 
     def r_calculate(self, t):
-        return  self.initial_curve.get_inst_forward(t) + self.xmesh[:, 0]
+        return self.xmesh[:, 0] + 0.04
 
 
 
@@ -50,7 +48,7 @@ class DummyCoefficients():
         # return (self.ymesh - self.kappa * self.xmesh)
 
     def eta_sq_calculate(self, t):
-        return 0.001 * np.ones(self.xmesh.shape)
+        return 1 * np.ones(self.xmesh.shape)
 
     def mu_y_calculate(self, eta_sq):
         return 2 * np.ones(self.xmesh.shape)
