@@ -107,7 +107,7 @@ class CapitalX():
         dsdx = self.swap_pricer.dsdx(swap, x, y, t)
         d2sdx2 = self.swap_pricer.d2sdx2(swap, x, y, t)
 
-        return -d2sdx2*dxds/dsdx
+        return -d2sdx2*np.power(dxds, 2)/dsdx
 
 
 class AnnuityPricer():
