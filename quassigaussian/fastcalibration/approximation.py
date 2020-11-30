@@ -65,7 +65,7 @@ class PiterbargApproximator():
     def _calculate_ksi(self, t, s, swap, s0):
 
         y_bar = self._calculate_ybar(t)
-        x_bar = self._calculate_xbar(t, s0, y_bar, swap)
+        x_bar = self._calculate_xbar(t, y_bar, swap, s0)
         dsdx = self.swap_pricer.dsdx(swap, x_bar, y_bar, t)
         d2sdx2 = self.swap_pricer.d2sdx2(swap, x_bar, y_bar, t)
         swap_price = self.swap_pricer.price(swap, x_bar, y_bar, t)
