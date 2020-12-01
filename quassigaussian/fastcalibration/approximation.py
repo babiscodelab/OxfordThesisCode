@@ -47,10 +47,10 @@ class PiterbargApproximator():
 
 
     def _calculate_xbar(self, t, y_bar, swap, s0):
-
+        # See Piterbarg p546. However, he forgot 0.5
         x0 = self._calculate_x0(t, swap, s0, y_bar)
         var_s = self._calculate_var_s(t, swap)
-        x_bar = x0 + var_s*self.capital_x.d2xds2(swap, x0, y_bar, t)
+        x_bar = x0 + 0.5*var_s*self.capital_x.d2xds2(swap, x0, y_bar, t)
 
         return x_bar
 
