@@ -62,8 +62,9 @@ class PiterbargApproximator():
         return integrate.quad(integrand, 0, t)[0]
 
 
-    def _calculate_ksi(self, t, s, swap, s0):
+    def calculate_ksi(self, t, swap_value, swap):
 
+        s0 = self.swap_pricer.price(swap, 0, 0, 0)
         y_bar = self._calculate_ybar(t)
         x_bar = self._calculate_xbar(t, y_bar, swap, s0)
         dsdx = self.swap_pricer.dsdx(swap, x_bar, y_bar, t)
@@ -71,8 +72,8 @@ class PiterbargApproximator():
         swap_price = self.swap_pricer.price(swap, x_bar, y_bar, t)
 
         alpha = 0.5 * d2sdx2
-        beta = dsdx - dsdx*x_bar
-        gamma = swap_price - dsdx * x_bar + 0.5 * d2sdx2 * math.pow(x_bar, 2) - s
+        beta = dsdx - d2sdx2*x_bar
+        gamma = swap_price - dsdx * x_bar + 0.5 * d2sdx2 * math.pow(x_bar, 2) - swap_value
 
         sqrt_delta = math.sqrt(math.pow(beta, 2) - 4*alpha*gamma)
         res1 = (-beta + sqrt_delta)/(2*alpha)
