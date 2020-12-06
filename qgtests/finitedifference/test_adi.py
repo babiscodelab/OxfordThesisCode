@@ -1,7 +1,7 @@
 from quassigaussian.finitedifference.adi.run_adi import AdiRunner
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility, BlackVolatilityModel
 from quassigaussian.products.instruments import Bond, Swap, Swaption
-from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer
+from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
 from quassigaussian.utils import extract_x0_result
 from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
@@ -171,4 +171,50 @@ def test_adi_swaption():
     swaption_value0 = adi_runner.run_adi(swaption, swaption_pricer)
 
     x0 = extract_x0_result(swaption_value0, mesher.xgrid, mesher.ygrid)
+    print("Swaption value at 0: ", x0)
+
+
+def test_adi_swaption2():
+
+    swaption_expiry = 4
+    swaption_maturity = 5
+    freq = 0.5
+
+    rate = 0.06
+
+    initial_curve = get_mock_yield_curve_const(rate=rate)
+    kappa = 0.3
+
+    swap_pricer = SwapPricer(initial_curve, kappa)
+    swap = Swap(swaption_expiry, swaption_maturity, freq)
+    swaption_pricer = SwaptionPricer(swap_pricer)
+
+    coupon = swap_pricer.price(swap, 0, 0, 0)
+    swaption = Swaption(swaption_expiry, coupon, swap)
+
+
+    local_volatility = LinearLocalVolatility.from_const(30, 0.05, 0.5, 0)
+    #local_volatility = LinearLocalVolatility.from_const(30, 0.1, 0.1, 0.1)
+
+    t_min = 0
+    t_max = swaption_expiry
+    t_grid_size = 100
+    x_grid_size = 401
+
+    y_grid_size = 20
+
+    x_min, x_max = calculate_x_boundaries2(t_max, local_volatility, alpha=3)
+    y_min, y_max = calculate_y_boundaries(t_max, kappa, local_volatility, alpha=3)
+
+    mesher = Mesher2d()
+    mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max, y_grid_size)
+
+    theta = 0.5
+    adi_runner = AdiRunner(theta, kappa, initial_curve, local_volatility, mesher)
+
+    swaption_value0 = adi_runner.run_adi(swaption, swaption_pricer)
+
+    x0 = extract_x0_result(swaption_value0, mesher.xgrid, mesher.ygrid)
+
+    find_implied_black_vola(x0, swaption, swap_pricer, swap_pricer.bond_pricer)
     print("Swaption value at 0: ", x0)

@@ -117,35 +117,43 @@ class AnnuityPricer():
 
     def annuity_times_g(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
 
-        res = 0
-        for bond in annuity.bond_list:
-            res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
-        return res
+        return annuity.freq*\
+        sum([self.bond_pricer.price(bond, x, y, t)* calculate_G(kappa, t, bond.maturity) for bond in annuity.bond_list])
+        #
+        # res = 0
+        # for bond in annuity.bond_list:
+        #     res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
+        # return res
 
     def annuity_price(self, t: float, x: float, y: float, annuity: Annuity):
 
-        res = 0
-        for bond in annuity.bond_list:
-            res += annuity.freq*self.bond_pricer.price(bond, x, y, t)
-
-        return res
+        return annuity.freq*sum([self.bond_pricer.price(bond, x, y, t) for bond in annuity.bond_list])
+        # res = 0
+        # for bond in annuity.bond_list:
+        #     res += annuity.freq*self.bond_pricer.price(bond, x, y, t)
+        #
+        # return res
 
 
     def annuity_dx(self, t: float, x: float, y: float,  kappa: float, annuity: Annuity):
 
-        res = 0
-        for bond in annuity.bond_list:
-            res += - annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
-
-        return res
+        return -self.annuity_times_g(t, x, y, kappa, annuity)
+        # res = 0
+        # for bond in annuity.bond_list:
+        #     res += - annuity.freq * self.bond_pricer.price(bond, x, y, t) * calculate_G(kappa, t, bond.maturity)
+        #
+        # return res
 
     def annuity_d2x(self, t: float, x: float, y: float, kappa: float, annuity: Annuity):
 
-        res = 0
-        for bond in annuity.bond_list:
-            res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * math.pow(calculate_G(kappa, t, bond.maturity), 2)
+        return annuity.freq*sum([self.bond_pricer.price(bond, x, y, t)*math.pow(calculate_G(kappa, t, bond.maturity),2)
+                                for bond in annuity.bond_list])
 
-        return res
+        # res = 0
+        # for bond in annuity.bond_list:
+        #     res += annuity.freq * self.bond_pricer.price(bond, x, y, t) * math.pow(calculate_G(kappa, t, bond.maturity), 2)
+        #
+        # return res
 
 
 
@@ -199,13 +207,13 @@ class Black76Pricer():
         return dplus, dminus
 
 
-def find_implied_black_vola(swaption_value, swaption, swap_pricer, bond_pricer):
+def find_implied_black_vola(swaption_value: float, swaption: Swaption, swap_pricer: SwapPricer, bond_pricer: BondPricer):
 
     def find_root(volatility):
         black_pricer = Black76Pricer(volatility, 1, swap_pricer, bond_pricer)
         calculated_swaption_price = black_pricer.black76_price(swaption)
         return swaption_value - calculated_swaption_price
 
-    implied_vola = fsolve(find_root, x0=np.array([0]))
+    implied_vola = fsolve(find_root, x0=np.array([0.1]))
 
     return implied_vola

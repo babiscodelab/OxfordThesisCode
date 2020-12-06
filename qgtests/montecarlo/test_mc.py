@@ -72,6 +72,7 @@ def test_mc_annuity_measure():
 
     avg_bond = np.mean(mc_price)
 
+    actual_price = np.exp(-rate*t_horizon)
 
 def test_mc_swaption():
 
