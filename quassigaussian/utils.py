@@ -9,9 +9,3 @@ def generate_random_numbers(number_paths, number_time_steps):
     return np.random.normal(size=(number_paths, number_time_steps))
 
 
-def extract_x0_result(res, x_grid, y_grid):
-
-    x0_pos = np.where(x_grid == 0)[0]
-    y0_pos = np.where(y_grid == 0)[0]
-
-    return res[x0_pos, y0_pos][0]

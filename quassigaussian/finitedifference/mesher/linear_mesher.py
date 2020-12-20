@@ -57,8 +57,17 @@ def calculate_delta(gridv):
     return delta_p, delta_m
 
 
+def extract_x0_result(res, x_grid, y_grid):
+
+    x0_pos = np.where(x_grid == 0)[0][0]
+    y0_pos = np.where(y_grid == 0)[0][0]
+
+    return res.values[x0_pos, y0_pos]
+
 
 if __name__ == "__main__":
 
     tmp = np.array([0, 2, 3, 7, 11, 22, 44, 45])
     calculate_delta(tmp)
+
+
