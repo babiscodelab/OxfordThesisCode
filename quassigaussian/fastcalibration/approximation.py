@@ -109,6 +109,24 @@ class DisplacedDiffusionParameterApproximator():
         return np.power(self.sigma_r.calculate_vola(t=t, x=x_bar) * swap_dsdx / self.swap_0, 2)
 
 
+
+    def calculate_lambda_square_beta(self, t):
+        y_bar = self.expectation_approximator.ybar_formula(t)
+        x_bar = self.expectation_approximator.xbar_formula(t, y_bar, self.swap, self.swap_0, x0_guess=0)
+        swap_dsdx = self.swap_pricer.dsdx(self.swap, x_bar, y_bar, t)
+        lambda_square = np.power(self.sigma_r.calculate_vola(t=t, x=x_bar) * swap_dsdx / self.swap_0, 2)
+        b_s = (self.swap_0 * self.sigma_r.b_t(t)) / ((self.sigma_r.alpha_t(t) + self.sigma_r.b_t(t) * x_bar) * swap_dsdx) \
+                  + self.swap_0 * self.swap_pricer.d2sdx2(self.swap, x_bar, y_bar, t) / (math.pow(swap_dsdx, 2))
+        return b_s
+
+    def calculate_bs(self, t):
+        y_bar = self.expectation_approximator.ybar_formula(t)
+        x_bar = self.expectation_approximator.xbar_formula(t, y_bar, self.swap, self.swap_0, x0_guess=0)
+        swap_dsdx = self.swap_pricer.dsdx(self.swap, x_bar, y_bar, t)
+        b_s = (self.swap_0 * self.sigma_r.b_t(t)) / ((self.sigma_r.alpha_t(t) + self.sigma_r.b_t(t) * x_bar) * swap_dsdx) \
+              + self.swap_0 * self.swap_pricer.d2sdx2(self.swap, x_bar, y_bar, t) / (math.pow(swap_dsdx, 2))
+        return b_s
+
     def get_bs_callable_decorator(self, x_bar: callable, y_bar: callable):
 
         swap_0 = self.swap_pricer.price(self.swap, 0, 0, 0)

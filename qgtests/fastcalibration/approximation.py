@@ -4,7 +4,7 @@ from quassigaussian.products.pricer import SwapPricer, BondPricer
 from quassigaussian.products.instruments import Swap, Swaption
 from quassigaussian.curves.libor import LiborCurve
 import numpy as np
-from quassigaussian.fastcalibration.parameter_averaging import calculate_swaption_approx_price, ApproximatorDiscretizer
+from quassigaussian.fastcalibration.parameter_averaging import calculate_swaption_approx_price, w_s_wrapper
 
 
 def test_piterbarg_y_bar():
@@ -67,16 +67,16 @@ def test_swaption_price():
 
     kappa = 0.3
     t = 15
-    swaption_expiry = 4
+    swaption_expiry = 5
 
     swap_start = swaption_expiry
-    swap_maturity = 5
+    swap_maturity = 10
     swap_freq = 0.5
 
     initial_curve = LiborCurve.from_constant_rate(0.06)
     swap_pricer = SwapPricer(initial_curve, kappa=kappa)
 
-    sigma_r = LinearLocalVolatility.from_const(t, 0.05, 0.5, 0)
+    sigma_r = LinearLocalVolatility.from_const(t, 0.5, 0.1, 0.2)
 
     piterbarg_approx = PiterbargExpectationApproximator(sigma_r, swap_pricer)
     swap = Swap(swaption_expiry, swap_maturity, swap_freq)
@@ -86,20 +86,12 @@ def test_swaption_price():
     coupon = swap_pricer.price(swap, 0, 0, 0)
 
     swaption = Swaption(swaption_expiry, coupon, swap)
-    approx_discr = ApproximatorDiscretizer(swap, swap_pricer, number_points=100)
-    x_bar, y_bar = approx_discr.calculate_discretized_expectations(piterbarg_approx.xbar_formula, piterbarg_approx.ybar_formula)
 
-    # \lambda^2(s), & the integral_0^t lambda^2(s)
-    lambda_square, lambda_square_integral = approx_discr.calculate_discretized_lambda(displaced_diffusion.get_lambda_s_square_callable_decorator(x_bar, y_bar))
 
-    # b(s)
-    b_s = displaced_diffusion.get_bs_callable_decorator(x_bar, y_bar)
+    b_s = displaced_diffusion.calculate_bs
+    swaption_value, black_implied_vola = calculate_swaption_approx_price(swaption, swap_pricer, displaced_diffusion.calculate_lambda_square, b_s)
 
-    # w(s)
-    w_s = approx_discr.calculate_discretized_w(lambda_square, lambda_square_integral)
-    swaption_value, black_implied_vola = calculate_swaption_approx_price(swaption, swap_pricer, w_s, lambda_square_integral, b_s)
-
-    #
+    print(swaption_value, black_implied_vola)
     # swap = Swap(29, 30, frequency=0.5)
     #
     # swap_0 = piterbarg_approx.swap_pricer.price(swap, 0, 0, 0)

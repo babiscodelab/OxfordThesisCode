@@ -2,7 +2,7 @@ from quassigaussian.finitedifference.adi.run_adi import AdiRunner
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility, BlackVolatilityModel
 from quassigaussian.products.instruments import Bond, Swap, Swaption
 from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
-from quassigaussian.utils import extract_x0_result
+from finitedifference.mesher.linear_mesher import extract_x0_result
 from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 import numpy as np
@@ -176,8 +176,8 @@ def test_adi_swaption():
 
 def test_adi_swaption2():
 
-    swaption_expiry = 4
-    swaption_maturity = 5
+    swaption_expiry = 5
+    swaption_maturity = 10
     freq = 0.5
 
     rate = 0.06
@@ -193,7 +193,7 @@ def test_adi_swaption2():
     swaption = Swaption(swaption_expiry, coupon, swap)
 
 
-    local_volatility = LinearLocalVolatility.from_const(30, 0.05, 0.5, 0)
+    local_volatility = LinearLocalVolatility.from_const(30, 0.5, 0.1, 0.2)
     #local_volatility = LinearLocalVolatility.from_const(30, 0.1, 0.1, 0.1)
 
     t_min = 0
@@ -216,5 +216,6 @@ def test_adi_swaption2():
 
     x0 = extract_x0_result(swaption_value0, mesher.xgrid, mesher.ygrid)
 
-    find_implied_black_vola(x0, swaption, swap_pricer, swap_pricer.bond_pricer)
-    print("Swaption value at 0: ", x0)
+    implied_vola = find_implied_black_vola(x0, swaption, swap_pricer, swap_pricer.bond_pricer)
+
+    print("Swaption value at 0: ", x0, implied_vola)
