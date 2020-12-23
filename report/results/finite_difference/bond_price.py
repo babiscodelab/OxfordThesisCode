@@ -10,7 +10,9 @@ from qgtests.utis import get_mock_yield_curve_const
 from report.directories import output_data_raw, date_timestamp
 from report.utils import get_nonexistant_path
 
-output_data_raw_finite_difference = os.path.join(output_data_raw, "finite_difference")
+output_data_raw_finite_difference = os.path.join(output_data_raw, "finite_difference", "bond")
+
+
 
 def adi_bond_report():
 
