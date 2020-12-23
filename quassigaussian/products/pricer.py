@@ -159,7 +159,7 @@ class AnnuityPricer():
 
 class SwaptionPricer():
 
-    def __init__(self, swap_pricer):
+    def __init__(self, swap_pricer: SwapPricer):
         self.swap_pricer = swap_pricer
 
     def maturity_price(self, swaption: Swaption, x_mesh, y_mesh):

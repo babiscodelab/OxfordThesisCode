@@ -57,12 +57,12 @@ def calculate_delta(gridv):
     return delta_p, delta_m
 
 
-def extract_x0_result(res, x_grid, y_grid):
+def extract_x0_result(res: np.array, x_grid: np.array, y_grid: np.array):
 
     x0_pos = np.where(x_grid == 0)[0][0]
     y0_pos = np.where(y_grid == 0)[0][0]
 
-    return res.values[x0_pos, y0_pos]
+    return res[x0_pos, y0_pos]
 
 
 if __name__ == "__main__":

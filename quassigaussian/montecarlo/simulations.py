@@ -1,5 +1,5 @@
 import numpy as np
-from quassigaussian.utils import generate_random_numbers
+from quassigaussian.utils import get_random_number_generator
 from quassigaussian.products.pricer import AnnuityPricer
 from quassigaussian.products.instruments import Annuity
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
@@ -27,18 +27,19 @@ class ResultSimulatorObj():
 
 class ProcessSimulator():
 
-    def __init__(self, number_samples, number_time_steps, dt, annuity_pricer: AnnuityPricer = None):
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", annuity_pricer: AnnuityPricer = None):
 
         self.number_samples = number_samples
         self.number_time_steps = number_time_steps
         self.dt = dt
         self.annuity_pricer = annuity_pricer
+        self.random_number_generator = get_random_number_generator(random_number_generator_type)
         self.time_grid = np.arange(0, self.number_time_steps+1) * self.dt
 
 
-    def simulate_xy(self, kappa: float, local_volatility: LinearLocalVolatility, annuity_measure : Annuity = None):
+    def simulate_xy(self, kappa: float, local_volatility: LinearLocalVolatility, annuity_measure : Annuity = None) -> ResultSimulatorObj:
 
-        random_numbers = generate_random_numbers(self.number_samples, self.number_time_steps)
+        random_numbers = self.random_number_generator(self.number_samples, self.number_time_steps)
         x = np.zeros(shape=(self.number_samples, self.number_time_steps+1))
         y = np.zeros(shape=(self.number_samples, self.number_time_steps+1))
 
