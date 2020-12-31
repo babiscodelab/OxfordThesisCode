@@ -1,4 +1,7 @@
 import os
+import json
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 
 def get_nonexistant_path(fname_path):
     """
@@ -29,7 +32,40 @@ def get_nonexistant_path(fname_path):
     return new_fname
 
 
-def get_all_files(directory):
+
+def savefig_metadata(file_path, fmt, fig, meta_data=None):
+
+    def line_prepender2(filename, line):
+
+        with open(filename, 'r+') as f:
+            lines = f.readlines()
+            lines[1] = line + "\n"
+
+        with open(file_path, "w") as file:
+            for line in lines:
+                file.write(line)
 
 
-    pass
+
+
+    def line_prepender(filename, line):
+        with open(filename, 'r+') as f:
+            content = f.read()
+            f.seek(0, 1)
+            f.write(line.rstrip('\r\n') + '\n' + content)
+
+
+    meta_data_str = str(dict(meta_data))
+
+    if (fmt == "eps"):
+        fig.savefig(file_path, format=fmt)
+        meta_data_str = "%%" + meta_data_str
+        line_prepender2(file_path, meta_data_str)
+    elif (fmt =="pdf"):
+
+        pdffig = PdfPages(file_path)
+
+        pdffig.savefig(fig)
+        metadata = pdffig.infodict()
+        metadata['Title'] = 'Example'
+        pdffig.close()

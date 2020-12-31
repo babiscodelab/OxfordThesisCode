@@ -11,6 +11,9 @@ output_tables = os.path.join(output_data, "tables")
 output_tables_fd = os.path.join(output_tables, "finite_difference")
 output_plots_fd = os.path.join(output_plots, "finite_difference")
 
+output_plots_approx_solution = os.path.join(output_plots, "approximate_solution")
+output_tables_approx_solution = os.path.join(output_tables, "approximate_solution")
+
 report_path = os.path.join(os.path.realpath(__file__), "..")
 
 
