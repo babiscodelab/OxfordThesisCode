@@ -4,11 +4,12 @@ from quassigaussian.utils import get_random_number_generator
 from quassigaussian.products.pricer import AnnuityPricer, BondPricer
 from quassigaussian.products.instruments import Annuity, Bond
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
-
+import pickle
+from executor import Executor
 
 class ResultSimulatorObj():
 
-    def __init__(self, x, y, time_grid, number_samples, number_time_steps, kappa, local_volatility, measure, random_number_generator_type):
+    def __init__(self, x, y, time_grid, number_samples, number_time_steps, kappa, local_volatility: LinearLocalVolatility, measure, random_number_generator_type):
 
         self.x = x
         self.y = y
@@ -25,8 +26,16 @@ class ResultSimulatorObj():
         self.measure = measure
         self.random_number_generator_type = random_number_generator_type
 
+        self.meta_data = {'time grid': self.time_grid, "kappa": kappa, "lambda": float(local_volatility.lambda_t(0)),
+                          'beta': float(local_volatility.b_t(0)), "alpha": float(local_volatility.alpha_t(0)),
+                          "random_number_generator_type": random_number_generator_type}
+
         self.res = pd.DataFrame({'time grid': self.time_grid, "x bar mc": self.x_bar, "y bar mc": self.y_bar,
                                  "x std mc": self.x_std, "y std mc": self.y_std})
+
+    def store_data(self, file):
+        with open(file) as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
 
 class ProcessSimulatorQMeasure():
@@ -41,27 +50,60 @@ class ProcessSimulatorQMeasure():
         self.time_grid = np.arange(0, self.number_time_steps + 1) * self.dt
         self.measure = "Risk Neutral"
 
-    def simulate_xy(self, kappa: float, local_volatility: LinearLocalVolatility) -> ResultSimulatorObj:
+
+
+    def simulate_xy(self, kappa: float, local_volatility: LinearLocalVolatility, parallel_simulation=False) -> ResultSimulatorObj:
 
         random_numbers = self.random_number_generator(self.number_samples, self.number_time_steps)
-        x = np.zeros(shape=(self.number_samples, self.number_time_steps + 1))
-        y = np.zeros(shape=(self.number_samples, self.number_time_steps + 1))
+        chunksize = 100
+        futures = []
+        if parallel_simulation:
+            executor = Executor(use_dask=False, nr_processes=6)
+            random_numbers_chunk_generator = (random_numbers[i:i+chunksize, :] for i in range(0, self.number_samples, chunksize))
+            j = 0
+            for random_numbers_chunk in random_numbers_chunk_generator:
+                futures.append(executor.submit(self.simulate_process, kappa, local_volatility, random_numbers_chunk, j))
+                j = j+chunksize
+            executor.await_futures(futures)
 
-        for i in np.arange(0, self.number_samples):
-            print("Simulation: " + str(i))
-            for j in np.arange(0, self.number_time_steps):
+            all_x = []
+            all_y = []
+            for fut in futures:
+                x, y = fut.result()
+                all_x.append(x)
+                all_y.append(y)
+            all_x = np.concatenate(all_x)
+            all_y = np.concatenate(all_y)
+            return ResultSimulatorObj(all_x, all_y, self.time_grid, self.number_samples, self.number_time_steps, kappa,
+                                      local_volatility, self.measure, self.random_number_generator_type)
 
+        else:
+            x, y = self.simulate_process(kappa, local_volatility, random_numbers)
+            return ResultSimulatorObj(x, y, self.time_grid, self.number_samples, self.number_time_steps, kappa,
+                                      local_volatility, self.measure, self.random_number_generator_type)
+
+    def simulate_process(self, kappa: float, local_volatility: LinearLocalVolatility, random_numbers, chunk_sim=0):
+
+        number_samples, number_time_steps = random_numbers.shape
+
+        x = np.zeros(shape=(number_samples, number_time_steps + 1))
+        y = np.zeros(shape=(number_samples, number_time_steps + 1))
+
+        for i in np.arange(0, number_samples):
+            print("Simulation: " + str(i+chunk_sim))
+            for j in np.arange(0, number_time_steps):
                 t = self.dt * j
                 eta = local_volatility.calculate_vola(t, x[i][j], y[i][j])
-                #mu_x = y[i][j] - kappa * x[i][j]
+                # mu_x = y[i][j] - kappa * x[i][j]
                 # x[i][j + 1] = x[i][j] + mu_x * self.dt + eta * random_numbers[i][j] * np.sqrt(self.dt)
                 # y[i][j + 1] = y[i][j] + (np.power(eta, 2) - 2 * kappa * y[i][j]) * self.dt
 
-                x[i][j + 1] = x[i][j] + self.get_drift_x(kappa, y[i][j], x[i][j], eta, t) * self.dt + eta * random_numbers[i][j] * np.sqrt(self.dt)
+                x[i][j + 1] = x[i][j] + self.get_drift_x(kappa, y[i][j], x[i][j], eta, t) * self.dt + eta * \
+                              random_numbers[i][j] * np.sqrt(self.dt)
                 y[i][j + 1] = y[i][j] + self.get_drift_y(eta, kappa, y[i][j]) * self.dt
+        return x, y
 
-        return ResultSimulatorObj(x, y, self.time_grid, self.number_samples, self.number_time_steps, kappa,
-                                  local_volatility, self.measure, self.random_number_generator_type)
+
 
     def get_drift_x(self, kappa, y_prev, x_prev, eta, t):
         return y_prev - kappa * x_prev
@@ -93,5 +135,6 @@ class ProcessSimulatorTerminalMeasure(ProcessSimulatorQMeasure):
         self.measure = self.bond
 
     def get_drift_x(self, kappa, y_prev, x_prev, eta, t):
-        return super(ProcessSimulatorTerminalMeasure, self).get_drift_x(kappa, y_prev, x_prev, eta, t) \
-               + 1/self.bond_pricer.price(self.bond, x_prev, y_prev, t) * self.bond_pricer.dpdx(self.bond, x_prev, y_prev, t)
+        return super(ProcessSimulatorTerminalMeasure, self).get_drift_x(kappa, y_prev, x_prev, eta, t) + 1/ \
+               self.bond_pricer.price(self.bond, x_prev, y_prev, t) * \
+               self.bond_pricer.dpdx(self.bond, x_prev, y_prev, t) * np.power(eta, 2)

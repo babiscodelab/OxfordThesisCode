@@ -1,79 +1,105 @@
-# from quassigaussian.montecarlo.simulations import ProcessSimulatorQMeasure
-# from quassigaussian.montecarlo.monte_carlo_pricer import monte_carlo_pricer
-# from quassigaussian.volatility.local_volatility import LinearLocalVolatility
-# from quassigaussian.products.instruments import Bond, Swap, Swaption, Annuity
-# from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
-# import pandas as pd
-# import os
-# import numpy as np
-# from qgtests.utis import get_mock_yield_curve_const
-# from report.directories import output_data_raw, date_timestamp
-# from report.utils import get_nonexistant_path
-#
-# output_data_raw_monte_carlo = os.path.join(output_data_raw, "monte_carlo", "swaption")
-#
-#
-# def mc_swaption_report():
-#     output_path = os.path.join(output_data_raw_monte_carlo, date_timestamp)
-#
-#     expiry_grid = [5]
-#     maturity_grid = [10]
-#     random_number_generator_type = "normal"
-#     curve_rate = 0.06
-#     kappa_grid = [0.03]
-#
-#     lambda_grid = [0.05]
-#     alpha_grid = [0.5]
-#     beta_grid = [0.5]
-#     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
-#     coupon_grid = [0]
-#     vola_grid_df = pd.DataFrame({"lambda": lambda_grid, "alpha": alpha_grid, "beta": beta_grid})
-#
-#
-#     number_paths = np.power(2, 18)
-#     number_time_steps = np.power(2, 9)
-#
-#     for expiry in expiry_grid:
-#         for maturity in maturity_grid:
-#             for kappa in kappa_grid:
-#                 swap_pricer = SwapPricer(initial_curve, kappa)
-#                 swaption_pricer = SwaptionPricer(swap_pricer)
-#                 swap = Swap(expiry, maturity, 0.5)
-#                 atm_swap_price = swap_pricer.price(swap, 0, 0, 0)
-#                 strike_grid = [atm_swap_price+coupon for coupon in coupon_grid]
-#                 for strike in strike_grid:
-#                     swaption = Swaption(expiry, strike, swap)
-#                     for index, vola_grid_row in vola_grid_df.iterrows():
-#                         loca_vola = LinearLocalVolatility.from_const(maturity, vola_grid_row["lambda"], vola_grid_row["alpha"], vola_grid_row["beta"])
-#
-#                         process_simulator = ProcessSimulatorQMeasure(number_paths, number_time_steps, expiry/number_time_steps, random_number_generator_type)
-#                          #TODO simulate in Terminal measure
-#                         result_obj = process_simulator.simulate_xy(kappa, loca_vola)
-#                         swaption_value_paths = monte_carlo_pricer(result_obj, swaption, swaption_pricer)
-#
-#                         swaption_value_mean = swaption_value_paths.mean()
-#                         swaption_value_error = 3*swaption_value_paths.std()/np.sqrt(number_paths)
-#                         implied_black_vola = find_implied_black_vola(swaption_value_mean, swaption, swap_pricer, swap_pricer.bond_pricer)
-#
-#                         implied_black_vola_upper = find_implied_black_vola(swaption_value_mean + swaption_value_error, swaption, swap_pricer, swap_pricer.bond_pricer)
-#                         implied_black_vola_lower = find_implied_black_vola(swaption_value_mean - swaption_value_error, swaption, swap_pricer, swap_pricer.bond_pricer)
-#
-#                         output_data = {
-#                                     "number_paths": number_paths, "number_time_steps": number_time_steps,
-#                                      "random_number_generator_type": random_number_generator_type, "expiry": expiry,
-#                                       "maturity": maturity, "strike": strike,
-#                                      "atm strike": atm_swap_price, "moneyness": atm_swap_price - strike,
-#                                      "vola_lambda": vola_grid_row["lambda"], "vola_alpha": vola_grid_row["alpha"],
-#                                      "vola_beta": vola_grid_row["beta"], "curve_rate": curve_rate, "kappa": kappa,
-#                                      "swaption value": swaption_value_mean, "swaption value error": swaption_value_error,
-#                                      "implied black vola": implied_black_vola,
-#                                      "implied black vola lower": implied_black_vola_lower,
-#                                      "implied black vola upper": implied_black_vola_upper}
-#
-#                         ouput_df = pd.DataFrame(output_data, index=[0])
-#                         output_file = os.path.join(output_path, "swaption_price_mc.hdf")
-#                         file_path = get_nonexistant_path(output_file)
-#
-#                         ouput_df.to_hdf(file_path, key="output_data", complevel=5)
-#
-# mc_swaption_report()
+from quassigaussian.montecarlo.simulations import ProcessSimulatorTerminalMeasure
+from quassigaussian.montecarlo.monte_carlo_pricer import monte_carlo_pricer_terminal_measure
+from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.instruments import Bond, Swap, Swaption, Annuity
+from quassigaussian.montecarlo.control_variate import apply_control_variate
+from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
+import pandas as pd
+import os
+import numpy as np
+from qgtests.utis import get_mock_yield_curve_const
+from report.directories import output_data_raw, date_timestamp
+from report.utils import get_nonexistant_path
+
+output_data_raw_monte_carlo = os.path.join(output_data_raw, "monte_carlo", "swaption")
+
+
+def mc_swaption_report():
+
+    output_path = os.path.join(output_data_raw_monte_carlo, date_timestamp)
+    output_file = os.path.join(output_path, "swaption_price_mc.hdf")
+    file_path = get_nonexistant_path(output_file)
+
+    random_number_generator_type = "normal"
+    curve_rate = 0.06
+    kappa_grid = [0.03]
+
+    initial_curve = get_mock_yield_curve_const(rate=curve_rate)
+    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.2, 0.4] for j in [0.1, 0.3, 0.5, 0.7, 0.9]]
+    vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
+
+    coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.03, -0.03]
+
+
+    number_paths = np.power(2, 14)
+    number_time_steps = np.power(2, 10)
+    swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
+
+    for swap_exp_mat in swap_ls:
+        print("swap: ", swap_exp_mat)
+        expiry, maturity = swap_exp_mat
+        for kappa in kappa_grid:
+            swap_pricer = SwapPricer(initial_curve, kappa)
+            swaption_pricer = SwaptionPricer(swap_pricer)
+            swap = Swap(expiry, maturity, 0.5)
+            atm_swap_price = swap_pricer.price(swap, 0, 0, 0)
+            strike_grid = [atm_swap_price+coupon for coupon in coupon_grid]
+            for index, vola_grid_row in vola_grid_df.iterrows():
+                loca_vola = LinearLocalVolatility.from_const(maturity, vola_grid_row["lambda"],
+                                                             vola_grid_row["alpha"], vola_grid_row["beta"])
+                bond_measure = swap.bond_T0
+                process_simulator = ProcessSimulatorTerminalMeasure(number_paths, number_time_steps,
+                                                             expiry / number_time_steps,
+                                                             random_number_generator_type, bond_measure,
+                                                                    swap_pricer.bond_pricer)
+
+                result_obj = process_simulator.simulate_xy(kappa, loca_vola, parallel_simulation=True)
+
+                for strike in strike_grid:
+                    swaption = Swaption(expiry, strike, swap)
+
+                    swaption_value_paths = monte_carlo_pricer_terminal_measure(result_obj, swaption, swaption_pricer)
+
+                    swaption_value_paths_cv = apply_control_variate(result_obj.x[:,-1], result_obj.y[:,-1], swaption_value_paths, bond_measure, swap_pricer.bond_pricer)
+                    swaption_value_mean = swaption_value_paths.mean()
+                    swaption_value_error = 3*swaption_value_paths.std()/np.sqrt(number_paths)
+
+                    swaption_value_mean_cv = swaption_value_paths_cv.mean()
+                    swaption_value_error_cv = 3 * swaption_value_paths_cv.std() / np.sqrt(number_paths)
+                    bond_pricer = swap_pricer.bond_pricer
+                    output_data = {"number_paths": number_paths, "number_time_steps": number_time_steps,
+                                   "random_number_generator_type": random_number_generator_type, "expiry": expiry,
+                                   "maturity": maturity, "strike": strike, "atm strike": atm_swap_price,
+                                   "moneyness": atm_swap_price - strike, "vola_lambda": vola_grid_row["lambda"],
+                                   "vola_alpha": vola_grid_row["alpha"], "vola_beta": vola_grid_row["beta"],
+                                   "curve_rate": curve_rate, "kappa": kappa, "swaption value": swaption_value_mean,
+                                   "swaption value error": swaption_value_error,
+                                   "swaption value cv": swaption_value_mean_cv,
+                                   "swaption value error cv": swaption_value_error_cv,
+
+                                   "implied_vola": find_implied_black_vola(swaption_value_mean, swaption,
+                                                                           swap_pricer, bond_pricer),
+                                   "implied_vola_max": find_implied_black_vola(swaption_value_mean+swaption_value_error,
+                                                                               swaption, swap_pricer, bond_pricer),
+                                   "implied_vola_min": find_implied_black_vola(swaption_value_mean-swaption_value_error,
+                                                                               swaption, swap_pricer, bond_pricer),
+                                   "implied_vola_cv": find_implied_black_vola(swaption_value_mean_cv, swaption,
+                                                                           swap_pricer, bond_pricer),
+                                   "implied_vola_cv_max": find_implied_black_vola(swaption_value_mean_cv + swaption_value_error_cv, swaption,
+                                                                           swap_pricer, bond_pricer),
+                                   "implied_vola_cv_min": find_implied_black_vola(swaption_value_mean_cv - swaption_value_error_cv, swaption,
+                                                                           swap_pricer, bond_pricer)}
+
+                    output_df_new = pd.DataFrame(output_data, index=[0])
+
+                    try:
+                        ouput_df_old = pd.read_hdf(file_path, key="output_data")
+                    except:
+                        ouput_df_old = pd.DataFrame()
+
+                    output_df_new = pd.concat([ouput_df_old, output_df_new])
+                    output_df_new.to_hdf(file_path, key="output_data", complevel=9)
+
+
+if __name__ == "__main__":
+    mc_swaption_report()

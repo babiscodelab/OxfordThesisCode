@@ -19,16 +19,14 @@ def adi_bond_report():
     output_path = os.path.join(output_data_raw_finite_difference, date_timestamp)
 
     curve_rate = 0.02
-    maturity_grid = [5]
+    maturity_grid = [10]
     kappa_grid = [0.03]
     theta = 1/2
 
-    lambda_grid = [0.05]
-    alpha_grid = [0.5]
-    beta_grid = [0.5]
     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
 
-    vola_grid_df = pd.DataFrame({"lambda": lambda_grid, "alpha": alpha_grid, "beta": beta_grid})
+    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.2, 0.4] for j in [0.1, 0.3, 0.5, 0.7, 0.9]]
+    vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     t_grid_size_grid = [6, 12, 18, 48, 64]
     x_grid_size_grid = [50, 100, 200, 400, 800]
@@ -37,6 +35,8 @@ def adi_bond_report():
     finite_difference_grid_df = pd.DataFrame({"t_grid_size": t_grid_size_grid, "y_grid_size": y_grid_size_grid,
                                            "x_grid_size": x_grid_size_grid})
     output_path = get_nonexistant_path(output_path)
+
+    vola_grid_df = vola_grid_df.loc[(vola_grid_df["lambda"]==0.2) & (vola_grid_df["beta"]==0.5)]
 
     for maturity in maturity_grid:
         for kappa in kappa_grid:

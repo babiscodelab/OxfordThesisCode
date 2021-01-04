@@ -9,6 +9,7 @@ from quassigaussian.finitedifference.mesher.linear_mesher import extract_x0_resu
 import matplotlib.pyplot as plt
 from report.config import outp_file_format
 from report.directories import output_plots_fd
+from report.utils import savefig_metadata
 
 
 def process_all(file_directory):
@@ -62,8 +63,8 @@ def process_bond_fd(input_file):
     bond_value = bond_pricer.price(bond, xmesh, ymesh, 0)
 
     #relative_diff = (output_fd - bond_value)/bond_value
-    analytics_bond = extract_x0_result(bond_value, np.array(xgrid[0].values), ygrid[0].values)
-    fd_bond = extract_x0_result(output_fd, xgrid, ygrid)
+    analytics_bond = extract_x0_result(bond_value.values, np.array(xgrid[0].values), ygrid[0].values)
+    fd_bond = extract_x0_result(output_fd.values, np.array(xgrid[0].values), ygrid)
 
     return fd_bond, analytics_bond, output_fd, bond_value, meta_data, xgrid, ygrid
 
@@ -95,11 +96,12 @@ def plot_bond_price_for_different(grid, output_fd, bond_value, meta_data, grid_d
                                                             int(meta_data["x_grid_size"]), int(meta_data["y_grid_size"]))
     ax1.set_title(title)
     file_name = "{}Y_exact_bond_value_vs_fd_{}_{}_{}_grid_{}".format(meta_data["maturity"], meta_data["t_grid_size"],
-                                                            meta_data["x_grid_size"], meta_data["y_grid_size"], grid_dir)
-    fig.savefig(os.path.join(output_plots_fd, file_name + "." + outp_file_format), format=outp_file_format)
+                                                            meta_data["x_grid_size"], meta_data["y_grid_size"], grid_dir) + "." + outp_file_format
+    fig.savefig(os.path.join(output_plots_fd, file_name), format=outp_file_format)
+    savefig_metadata(os.path.join(output_plots_fd, file_name), outp_file_format, fig, meta_data)
     return fig
 
 
 #input_file = os.path.join(output_data_raw, "finite_difference", "2020_12_13", "bond_price_fd.hdf")
-input_dir = os.path.join(output_data_raw, "finite_difference", "2020_12_20")
+input_dir = os.path.join(output_data_raw, "finite_difference", "bond", "2021_01_03-1")
 process_all(input_dir)

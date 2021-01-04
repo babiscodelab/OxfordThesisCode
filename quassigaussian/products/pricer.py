@@ -162,6 +162,9 @@ class SwaptionPricer():
     def __init__(self, swap_pricer: SwapPricer):
         self.swap_pricer = swap_pricer
 
+    def price(self, swaption: Swaption, x_mesh, y_mesh):
+        return self.maturity_price(swaption, x_mesh, y_mesh)
+
     def maturity_price(self, swaption: Swaption, x_mesh, y_mesh):
 
         swap_fair_value_strike = self.swap_pricer.price(swaption.swap, x_mesh, y_mesh, swaption.expiry)

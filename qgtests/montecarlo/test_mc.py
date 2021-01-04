@@ -6,7 +6,7 @@ from quassigaussian.volatility.local_volatility import LinearLocalVolatility, Bl
 from quassigaussian.products.pricer import AnnuityPricer, BondPricer, SwapPricer, SwaptionPricer
 from quassigaussian.products.instruments import Annuity, Swap, Swaption
 from scipy.interpolate import interp1d
-from quassigaussian.montecarlo.monte_carlo_pricer import monte_carlo_pricer
+from quassigaussian.montecarlo.monte_carlo_pricer import monte_carlo_pricer_annuity
 
 def test_mc_rn_measure():
 
@@ -169,7 +169,7 @@ def test_mc_swaption_annuity():
     swaption_pricer = SwaptionPricer(swap_pricer)
     swaption = Swaption(swap_T0, coupon, swap)
 
-    res = monte_carlo_pricer(res, swaption, swaption_pricer)
+    res = monte_carlo_pricer_annuity(res, swaption, swaption_pricer)
 
     exp_swaption_mc = np.mean(res)
     upper_value = exp_swaption_mc + 3*np.std(res)/np.sqrt(number_samples)

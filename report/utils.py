@@ -34,6 +34,7 @@ def get_nonexistant_path(fname_path):
 
 
 def savefig_metadata(file_path, fmt, fig, meta_data=None):
+    fig.tight_layout()
 
     def line_prepender2(filename, line):
 
@@ -59,7 +60,7 @@ def savefig_metadata(file_path, fmt, fig, meta_data=None):
 
     if (fmt == "eps"):
         fig.savefig(file_path, format=fmt)
-        meta_data_str = "%%" + meta_data_str
+        meta_data_str = "%" + meta_data_str
         line_prepender2(file_path, meta_data_str)
     elif (fmt =="pdf"):
 
@@ -67,5 +68,13 @@ def savefig_metadata(file_path, fmt, fig, meta_data=None):
 
         pdffig.savefig(fig)
         metadata = pdffig.infodict()
-        metadata['Title'] = 'Example'
+        metadata['Keywords'] = meta_data_str
         pdffig.close()
+
+
+
+def splitpath(path, maxdepth=20):
+ ( head, tail ) = os.path.split(path)
+ return splitpath(head, maxdepth - 1) + [ tail ] \
+     if maxdepth and head and head != path \
+     else [ head or tail ]

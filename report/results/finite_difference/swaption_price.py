@@ -39,7 +39,7 @@ def adi_swaption_report():
                                            "x_grid_size": x_grid_size_grid})
     output_path = get_nonexistant_path(output_path)
 
-    coupon_grid = [0, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025, 0.03, -0.03]
+    coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.03, -0.03]
     #coupon_grid = [coupon_grid[0], coupon_grid[3], coupon_grid[4]]
 
     #coupon_grid = [0]

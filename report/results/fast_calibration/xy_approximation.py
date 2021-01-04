@@ -15,47 +15,51 @@ output_data_raw_approx = os.path.join(output_data_raw, "approximation", "xy_appr
 
 def compare_approximated_values():
 
-    output_path = os.path.join(output_data_raw_approx, date_timestamp)
+    output_path = os.path.join(output_data_raw_approx, date_timestamp, "result")
 
     curve_rate = 0.06
     random_number_generator_type = "normal"
     kappa_grid = [0.03]
-    lambda_grid = [0.05]
-    alpha_grid = [0.5]
-    beta_grid = [0.5]
     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
 
-    vola_grid_df = pd.DataFrame({"lambda": lambda_grid, "alpha": alpha_grid, "beta": beta_grid})
+    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.2, 0.4] for j in [0.1, 0.3, 0.5, 0.7, 0.9]]
+
+    vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     output_path = get_nonexistant_path(output_path)
 
-    number_samples = 100
-    number_steps = 10
+    number_samples = 4096
+    number_steps = 256
 
-    T0 = 5
-    TN = 10
+    swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30), (10, 20)]
 
+    #swap_ls = swap_ls[1:2]
+    #vola_grid_df = vola_grid_df.iloc[0:1]
+    for swap_T0_TN in swap_ls:
+        T0, TN = swap_T0_TN
+        for kappa in kappa_grid:
+            swap_pricer = SwapPricer(initial_curve, kappa)
+            swap = Swap(T0, TN, 1/2)
+            for index, vola_grid_row in vola_grid_df.iterrows():
+                dt = T0/number_steps
+                loca_vola = LinearLocalVolatility.from_const(swap.TN, vola_grid_row["lambda"], vola_grid_row["alpha"],
+                                                             vola_grid_row["beta"])
+                # loca_vola = LinearLocalVolatility.from_swap_const(swap, swap_pricer, vola_grid_row["lambda"], vola_grid_row["beta"])
 
-    for kappa in kappa_grid:
-        swap_pricer = SwapPricer(initial_curve, kappa)
-        swap = Swap(T0, TN, 1/2)
-        for index, vola_grid_row in vola_grid_df.iterrows():
-            dt = T0/number_steps
-            loca_vola = LinearLocalVolatility.from_const(swap.TN, vola_grid_row["lambda"], vola_grid_row["alpha"],
-                                                         vola_grid_row["beta"])
-            res_annuity_mc = simulate_xy(kappa, loca_vola, number_samples, number_steps, dt, random_number_generator_type,
-                                         swap.annuity, swap_pricer.annuity_pricer)
-            res_approx_xy = calculate_approximation_xy(res_annuity_mc.time_grid, swap, loca_vola, swap_pricer)
-            approximation_comparison_df = pd.merge(res_approx_xy, res_annuity_mc.res, on="time grid")
-            meta_data = pd.DataFrame({"kappa": [kappa], "swap_T0": [T0], "swap_TN": [TN], "lambda value": [vola_grid_row["lambda"]],
-                         "alpha": [vola_grid_row['alpha']], "beta": [vola_grid_row["beta"]],
-                         "number samples": [number_samples], "number steps": [number_steps],
-                         "curve rate": [curve_rate], 'random number generator type': random_number_generator_type})
-            output_file = os.path.join(output_path, "xy_approx.hdf")
-            file_path = get_nonexistant_path(output_file)
+                res_annuity_mc = simulate_xy(kappa, loca_vola, number_samples, number_steps, dt, random_number_generator_type,
+                                             swap.annuity, swap_pricer.annuity_pricer)
+                res_approx_xy = calculate_approximation_xy(res_annuity_mc.time_grid, swap, loca_vola, swap_pricer)
+                approximation_comparison_df = pd.merge(res_approx_xy, res_annuity_mc.res, on="time grid")
+                meta_data = pd.DataFrame({"kappa": [kappa], "swap_T0": [T0], "swap_TN": [TN],
+                             "lambda value": [float(loca_vola.lambda_t(0))],
+                             "alpha": [float(loca_vola.alpha_t(0))], "beta": [float(loca_vola.b_t(0))],
+                             "number samples": [number_samples], "number steps": [number_steps],
+                             "curve rate": [curve_rate], 'random number generator type': random_number_generator_type})
+                output_file = os.path.join(output_path, "xy_approx.hdf")
+                file_path = get_nonexistant_path(output_file)
 
-            approximation_comparison_df.to_hdf(file_path, key="approximation_comparison", complevel=5)
-            meta_data.to_hdf(file_path, key="meta_data", complevel=5)
+                approximation_comparison_df.to_hdf(file_path, key="approximation_comparison", complevel=5)
+                meta_data.to_hdf(file_path, key="meta_data", complevel=5)
 
 
 

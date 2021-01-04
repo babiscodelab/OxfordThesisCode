@@ -5,6 +5,8 @@ class Bond():
     def __init__(self, maturity: float):
         self.maturity = maturity
 
+    def __str__(self):
+        return "bond_" + str(self.maturity)
 
 
 
@@ -46,3 +48,7 @@ class Annuity():
     def __init__(self, bond_list, freq):
         self.bond_list = bond_list
         self.freq = freq
+
+    def __str__(self):
+        return "annuity_" + str(self.bond_list[0].maturity) + '_' \
+               + str(self.bond_list[-1].maturity) + "_freq_" + str(self.freq)
