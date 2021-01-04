@@ -1,10 +1,43 @@
-from quassigaussian.fastcalibration.approximation import DisplacedDiffusionParameterApproximator, PiterbargExpectationApproximator
+from quassigaussian.fastcalibration.approximation import DisplacedDiffusionParameterApproximator, PiterbargExpectationApproximator, RungeKuttaApproximator
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.pricer import SwapPricer, BondPricer
 from quassigaussian.products.instruments import Swap, Swaption
 from quassigaussian.curves.libor import LiborCurve
 import numpy as np
 from quassigaussian.fastcalibration.parameter_averaging import calculate_swaption_approx_price, w_s_wrapper
+
+
+
+def test_runge_kutta_approx():
+
+    kappa = 0.3
+    t = 10
+
+    initial_curve = LiborCurve.from_constant_rate(0.06)
+    swap_pricer = SwapPricer(initial_curve, kappa=kappa)
+
+    sigma_r = LinearLocalVolatility.from_const(t, 0.4, 0.1, 0)
+    swap = Swap(4, 5, 0.5)
+
+    swap0 = swap_pricer.price(swap, 0, 0, 0)
+
+    annuity = swap.annuity
+    annuity_pricer = swap_pricer.annuity_pricer
+
+    rk_approx = RungeKuttaApproximator(sigma_r, swap_pricer, annuity, annuity_pricer)
+    res = rk_approx.approximate_x_y()
+
+    piterbarg_approx = PiterbargExpectationApproximator(sigma_r, swap_pricer)
+
+    time_grid = res.t
+    xbar = []
+    ybar = []
+    for t in time_grid:
+        ybar.append(piterbarg_approx.ybar_formula(t))
+        xbar.append(piterbarg_approx.xbar_formula(t, ybar[-1], swap, swap0, 0))
+
+    print("As")
+
 
 
 def test_piterbarg_y_bar():

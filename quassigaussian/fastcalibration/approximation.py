@@ -1,11 +1,39 @@
 import scipy.integrate as integrate
 import math
-from quassigaussian.products.pricer import SwapPricer, CapitalX
+from quassigaussian.products.pricer import SwapPricer, CapitalX, AnnuityPricer
 from quassigaussian.products.instruments import Swap
 from scipy.optimize import fsolve
 import numpy as np
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 from scipy.interpolate.interpolate import interp1d
+from scipy.integrate import solve_ivp
+
+class RungeKuttaApproximator():
+
+
+    def __init__(self, sigma_r: LinearLocalVolatility, swap_pricer: SwapPricer, annuity, annuity_pricer: AnnuityPricer):
+        self.g_t = lambda t: np.exp(-swap_pricer.kappa * t)
+        self.sigma_r = sigma_r
+        self.swap_pricer = swap_pricer
+        self.capital_x = CapitalX(swap_pricer)
+        self.kappa = self.swap_pricer.kappa
+        self.annuity = annuity
+        self.annuity_pricer = annuity_pricer
+
+    def rhs_system(self, t, xy):
+
+        x = xy[0]
+        y = xy[1]
+
+        rhs_x = -self.kappa*x + y + \
+        self.annuity_pricer.annuity_dx(t, x, y, self.kappa, self.annuity)*1/self.annuity_pricer.annuity_price(t, x, y, self.annuity)\
+                *(np.square(self.sigma_r.calculate_vola(t, x)))
+        rhs_y = np.square(self.sigma_r.calculate_vola(t, x)) - 2*self.kappa*y
+        return np.array([rhs_x, rhs_y])
+
+    def approximate_x_y(self, time_grid):
+        sol = solve_ivp(self.rhs_system, t_span=[time_grid[0], time_grid[-1]], y0=np.array([0, 0]), t_eval=time_grid)
+        return sol
 
 class PiterbargExpectationApproximator():
 
