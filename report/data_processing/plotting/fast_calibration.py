@@ -23,6 +23,7 @@ def plot_x(output_data, meta_data):
 
     ax1.plot(time_grid, output_data["x bar approx"], label=r"Approximate solution", color='r')
     ax1.plot(time_grid, output_data["x bar mc"], label="Monte Carlo Simulation", color='b')
+    ax1.plot(time_grid, output_data["x_runge_kutta"], label="Runge Kutta", color='g')
 
     upper = output_data["x bar mc"] + 3 * output_data["x std mc"]/np.sqrt(meta_data["number samples"])
     lower = output_data["x bar mc"] - 3 * output_data["x std mc"] / np.sqrt(meta_data["number samples"])
@@ -44,7 +45,7 @@ def plot_x(output_data, meta_data):
     output_file = os.path.join(output_plots_approx_solution, file_name)
 
     file_path = get_nonexistant_path(output_file)
-    savefig_metadata(file_path, outp_file_format, fig, meta_data)
+    #savefig_metadata(file_path, outp_file_format, fig, meta_data)
 
 def plot_y(output_data, meta_data):
 
@@ -52,6 +53,7 @@ def plot_y(output_data, meta_data):
     time_grid = output_data["time grid"]
     ax1.plot(time_grid, output_data["y bar approx"], label="Approximate Solution", color='r')
     ax1.plot(time_grid, output_data["y bar mc"], label="Monte Carlo Simulation", color='b')
+    ax1.plot(time_grid, output_data["y_runge_kutta"], label="Runge Kutta", color='g')
 
     upper = output_data["y bar mc"] + 3 * output_data["y std mc"]/np.sqrt(meta_data["number samples"])
     lower = output_data["y bar mc"] - 3 * output_data["y std mc"]/np.sqrt(meta_data["number samples"])
@@ -73,7 +75,7 @@ def plot_y(output_data, meta_data):
     output_file = os.path.join(output_plots_approx_solution, file_name)
 
     file_path = get_nonexistant_path(output_file)
-    savefig_metadata(file_path, outp_file_format, fig, meta_data)
+    #savefig_metadata(file_path, outp_file_format, fig, meta_data)
 
 
 def table_result(output_data, meta_data):
@@ -86,6 +88,6 @@ def table_result(output_data, meta_data):
     pass
 
 if __name__ == "__main__":
-    input_dir = os.path.join(output_data_raw, "approximation", "xy_approx", "2021_01_03", "result")
+    input_dir = os.path.join(output_data_raw, "approximation", "xy_approx", "2021_01_04", "result-5")
     process_all(input_dir)
-    #plt.show()
+    plt.show()
