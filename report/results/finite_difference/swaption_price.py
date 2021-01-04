@@ -17,88 +17,81 @@ def adi_swaption_report():
 
     output_path = os.path.join(output_data_raw_finite_difference, date_timestamp)
 
-    expiry_grid = [5]
-    maturity_grid = [10]
-
     curve_rate = 0.06
     kappa_grid = [0.03]
     theta = 1/2
 
-    lambda_grid = [0.05]
-    alpha_grid = [0.5]
-    beta_grid = [0.5]
     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
 
-    vola_grid_df = pd.DataFrame({"lambda": lambda_grid, "alpha": alpha_grid, "beta": beta_grid})
+    finite_difference_parameter = [(6, 50, 10), (12, 100, 20), (18, 200, 40), (48, 400, 60), (128, 800, 80)]
 
-    t_grid_size_grid = [6, 12, 18, 48, 64]
-    x_grid_size_grid = [50, 100, 200, 400, 800]
-    y_grid_size_grid = [10, 20, 40, 60, 80]
-
-    finite_difference_grid_df = pd.DataFrame({"t_grid_size": t_grid_size_grid, "y_grid_size": y_grid_size_grid,
-                                           "x_grid_size": x_grid_size_grid})
+    finite_difference_grid_df = pd.DataFrame(finite_difference_parameter, columns=["t_grid_size", "x_grid_size", "y_grid_size"])
     output_path = get_nonexistant_path(output_path)
+    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.25, 0.45] for j in [0.05, 0.1, 0.3, 0.7]]
+    vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
-    coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.03, -0.03]
-    #coupon_grid = [coupon_grid[0], coupon_grid[3], coupon_grid[4]]
+    coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
 
-    #coupon_grid = [0]
+    swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
 
-    for expiry in expiry_grid:
-        for maturity in maturity_grid:
-            for kappa in kappa_grid:
-                swap_pricer = SwapPricer(initial_curve, kappa)
-                swaption_pricer = SwaptionPricer(swap_pricer)
-                swap = Swap(expiry, maturity, 0.5)
-                atm_swap_price = swap_pricer.price(swap, 0, 0, 0)
-                strike_grid = [atm_swap_price+coupon for coupon in coupon_grid]
-                for strike in strike_grid:
-                    swaption = Swaption(expiry, strike, swap)
-                    for index, vola_grid_row in vola_grid_df.iterrows():
-                        loca_vola = LinearLocalVolatility.from_const(maturity, vola_grid_row["lambda"], vola_grid_row["alpha"], vola_grid_row["beta"])
-                        for index, finite_difference_grid_row in finite_difference_grid_df.iterrows():
+    finite_difference_grid_df = finite_difference_grid_df.iloc[4:]
+    vola_grid_df = vola_grid_df.iloc[9:10]
 
-                            x_grid_size = finite_difference_grid_row["x_grid_size"]
-                            y_grid_size = finite_difference_grid_row["y_grid_size"]
-                            t_grid_size = finite_difference_grid_row["t_grid_size"]*expiry
+    for swap_exp_mat in swap_ls:
+        expiry, maturity = swap_exp_mat
+        for kappa in kappa_grid:
+            swap_pricer = SwapPricer(initial_curve, kappa)
+            swaption_pricer = SwaptionPricer(swap_pricer)
+            swap = Swap(expiry, maturity, 0.5)
+            atm_swap_price = swap_pricer.price(swap, 0, 0, 0)
+            strike_grid = [atm_swap_price+coupon for coupon in coupon_grid]
+            for strike in strike_grid:
+                swaption = Swaption(expiry, strike, swap)
+                for index, vola_grid_row in vola_grid_df.iterrows():
+                    loca_vola = LinearLocalVolatility.from_const(maturity, vola_grid_row["lambda"], vola_grid_row["alpha"], vola_grid_row["beta"])
+                    for index, finite_difference_grid_row in finite_difference_grid_df.iterrows():
 
-                            t_min = 0
-                            t_max = expiry
+                        x_grid_size = finite_difference_grid_row["x_grid_size"]
+                        y_grid_size = finite_difference_grid_row["y_grid_size"]
+                        t_grid_size = finite_difference_grid_row["t_grid_size"]*expiry
 
-                            x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=2.5)
-                            y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=2.5)
+                        t_min = 0
+                        t_max = expiry
 
-                            mesher = Mesher2d()
-                            mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max,
-                                                    y_grid_size)
+                        x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=2.5)
+                        y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=2.5)
 
-                            adi_runner = AdiRunner(theta, kappa, initial_curve, loca_vola, mesher)
+                        mesher = Mesher2d()
+                        mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max,
+                                                y_grid_size)
 
-                            swaption_t0 = pd.DataFrame(adi_runner.run_adi(swaption, swaption_pricer))
+                        adi_runner = AdiRunner(theta, kappa, initial_curve, loca_vola, mesher)
 
-                            output_file = os.path.join(output_path, "swaption_price_fd.hdf")
-                            file_path = get_nonexistant_path(output_file)
+                        swaption_t0 = pd.DataFrame(adi_runner.run_adi(swaption, swaption_pricer))
 
-                            swaption_t0_x0_y0 = extract_x0_result(swaption_t0, mesher.xgrid, mesher.ygrid)
-                            implied_black_vola = find_implied_black_vola(swaption_t0_x0_y0, swaption, swap_pricer, swap_pricer.bond_pricer)
+                        output_file = os.path.join(output_path, "swaption_price_fd.hdf")
+                        file_path = get_nonexistant_path(output_file)
 
-                            meta_data = {"expiry": expiry, "maturity": maturity, "strike": strike,
-                                         "atm strike": atm_swap_price, "moneyness": atm_swap_price-strike,
-                                         "x_grid_size": int(x_grid_size), "y_grid_size": int(y_grid_size),
-                                          "t_grid_size": int(t_grid_size),
-                                         "vola_lambda": vola_grid_row["lambda"], "vola_alpha": vola_grid_row["alpha"],
-                                         "vola_beta": vola_grid_row["beta"], "curve_rate": curve_rate, "kappa": kappa,
-                                         "swaption_value": swaption_t0_x0_y0, "implied_black_vola": implied_black_vola}
+                        swaption_t0_x0_y0 = extract_x0_result(swaption_t0.values, mesher.xgrid, mesher.ygrid)
+                        implied_black_vola = find_implied_black_vola(swaption_t0_x0_y0, swaption, swap_pricer, swap_pricer.bond_pricer)
 
-                            meta_data = pd.DataFrame(meta_data, index=[0])
-                            swaption_t0.to_hdf(file_path, key="data", complevel=5)
-                            meta_data.to_hdf(file_path, key="metadata", complevel=5)
+                        meta_data = {"expiry": expiry, "maturity": maturity, "strike": strike,
+                                     "atm strike": atm_swap_price, "moneyness": strike - atm_swap_price,
+                                     "x_grid_size": int(x_grid_size), "y_grid_size": int(y_grid_size),
+                                      "t_grid_size": int(t_grid_size),
+                                     "vola_lambda": vola_grid_row["lambda"], "vola_alpha": vola_grid_row["alpha"],
+                                     "vola_beta": vola_grid_row["beta"], "curve_rate": curve_rate, "kappa": kappa,
+                                     "swaption_value": swaption_t0_x0_y0, "implied_black_vola": implied_black_vola}
 
-                            pd.DataFrame(mesher.xmesh).to_hdf(file_path, key='xmesh', complevel=5)
-                            pd.DataFrame(mesher.ymesh).to_hdf(file_path, key='ymesh', complevel=5)
+                        meta_data = pd.DataFrame(meta_data, index=[0])
+                        swaption_t0.to_hdf(file_path, key="data", complevel=5)
+                        meta_data.to_hdf(file_path, key="metadata", complevel=5)
 
-                            pd.DataFrame(mesher.xgrid).to_hdf(file_path, key='xgrid', complevel=5)
-                            pd.DataFrame(mesher.ygrid).to_hdf(file_path, key='ygrid', complevel=5)
+                        pd.DataFrame(mesher.xmesh).to_hdf(file_path, key='xmesh', complevel=5)
+                        pd.DataFrame(mesher.ymesh).to_hdf(file_path, key='ymesh', complevel=5)
 
+                        pd.DataFrame(mesher.xgrid).to_hdf(file_path, key='xgrid', complevel=5)
+                        pd.DataFrame(mesher.ygrid).to_hdf(file_path, key='ygrid', complevel=5)
 
-adi_swaption_report()
+if __name__ == "__main__":
+    adi_swaption_report()

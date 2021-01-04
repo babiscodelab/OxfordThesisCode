@@ -25,13 +25,14 @@ def mc_swaption_report():
     kappa_grid = [0.03]
 
     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
-    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.2, 0.4] for j in [0.1, 0.3, 0.5, 0.7, 0.9]]
+
+    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.25, 0.5] for j in [0.05, 0.1, 0.3, 0.7]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
-    coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.03, -0.03]
+    coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
+    vola_grid_df = vola_grid_df.iloc[9:10]
 
-
-    number_paths = np.power(2, 14)
+    number_paths = np.power(2, 16)
     number_time_steps = np.power(2, 10)
     swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
 
@@ -70,7 +71,7 @@ def mc_swaption_report():
                     output_data = {"number_paths": number_paths, "number_time_steps": number_time_steps,
                                    "random_number_generator_type": random_number_generator_type, "expiry": expiry,
                                    "maturity": maturity, "strike": strike, "atm strike": atm_swap_price,
-                                   "moneyness": atm_swap_price - strike, "vola_lambda": vola_grid_row["lambda"],
+                                   "moneyness": strike-atm_swap_price, "vola_lambda": vola_grid_row["lambda"],
                                    "vola_alpha": vola_grid_row["alpha"], "vola_beta": vola_grid_row["beta"],
                                    "curve_rate": curve_rate, "kappa": kappa, "swaption value": swaption_value_mean,
                                    "swaption value error": swaption_value_error,
