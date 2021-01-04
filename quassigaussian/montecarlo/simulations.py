@@ -40,7 +40,7 @@ class ResultSimulatorObj():
 
 class ProcessSimulatorQMeasure():
 
-    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal"):
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", nr_processes=3):
 
         self.number_samples = number_samples
         self.number_time_steps = number_time_steps
@@ -49,6 +49,7 @@ class ProcessSimulatorQMeasure():
         self.random_number_generator_type = random_number_generator_type
         self.time_grid = np.arange(0, self.number_time_steps + 1) * self.dt
         self.measure = "Risk Neutral"
+        self.nr_processes = nr_processes
 
 
 
@@ -58,7 +59,7 @@ class ProcessSimulatorQMeasure():
         chunksize = 100
         futures = []
         if parallel_simulation:
-            executor = Executor(use_dask=False, nr_processes=6)
+            executor = Executor(use_dask=False, nr_processes=self.nr_processes)
             random_numbers_chunk_generator = (random_numbers[i:i+chunksize, :] for i in range(0, self.number_samples, chunksize))
             j = 0
             for random_numbers_chunk in random_numbers_chunk_generator:
@@ -88,6 +89,7 @@ class ProcessSimulatorQMeasure():
 
         x = np.zeros(shape=(number_samples, number_time_steps + 1))
         y = np.zeros(shape=(number_samples, number_time_steps + 1))
+        sqrt_dt = np.sqrt(self.dt)
 
         for i in np.arange(0, number_samples):
             print("Simulation: " + str(i+chunk_sim))
@@ -99,7 +101,7 @@ class ProcessSimulatorQMeasure():
                 # y[i][j + 1] = y[i][j] + (np.power(eta, 2) - 2 * kappa * y[i][j]) * self.dt
 
                 x[i][j + 1] = x[i][j] + self.get_drift_x(kappa, y[i][j], x[i][j], eta, t) * self.dt + eta * \
-                              random_numbers[i][j] * np.sqrt(self.dt)
+                              random_numbers[i][j] * sqrt_dt
                 y[i][j + 1] = y[i][j] + self.get_drift_y(eta, kappa, y[i][j]) * self.dt
         return x, y
 
@@ -115,8 +117,8 @@ class ProcessSimulatorQMeasure():
 
 class ProcessSimulatorAnnuity(ProcessSimulatorQMeasure):
 
-    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type, annuity_measure, annuity_pricer: AnnuityPricer):
-        super(ProcessSimulatorAnnuity, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type)
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type, annuity_measure, annuity_pricer: AnnuityPricer, nr_processes=3):
+        super(ProcessSimulatorAnnuity, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type, nr_processes)
         self.annuity_measure = annuity_measure
         self.annuity_pricer = annuity_pricer
         self.measure = self.annuity_measure
@@ -128,8 +130,8 @@ class ProcessSimulatorAnnuity(ProcessSimulatorQMeasure):
 
 
 class ProcessSimulatorTerminalMeasure(ProcessSimulatorQMeasure):
-    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", bond=None, bond_pricer: BondPricer = None):
-        super(ProcessSimulatorTerminalMeasure, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type)
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", bond=None, bond_pricer: BondPricer = None, nr_processes=3):
+        super(ProcessSimulatorTerminalMeasure, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type, nr_processes)
         self.bond_pricer = bond_pricer
         self.bond = bond
         self.measure = self.bond
