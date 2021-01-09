@@ -6,6 +6,7 @@ from quassigaussian.products.instruments import Annuity, Bond
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 import pickle
 from executor import Executor
+from quassigaussian.utils import calculate_G
 
 class ResultSimulatorObj():
 
@@ -21,8 +22,11 @@ class ResultSimulatorObj():
 
         self.x_bar = x.mean(axis=0)
         self.y_bar = y.mean(axis=0)
-        self.x_std = x.var(axis=0)
-        self.y_std = y.std(axis=0)
+        self.n_scrambles = 32
+
+        self.x_std, self.x_error = self.calculate_std_error(x, self.n_scrambles)
+        self.y_std, self.y_error = self.calculate_std_error(y, self.n_scrambles)
+
         self.measure = measure
         self.random_number_generator_type = random_number_generator_type
 
@@ -33,6 +37,25 @@ class ResultSimulatorObj():
         self.res = pd.DataFrame({'time grid': self.time_grid, "x bar mc": self.x_bar, "y bar mc": self.y_bar,
                                  "x std mc": self.x_std, "y std mc": self.y_std})
 
+
+    @staticmethod
+    def calculate_std_error(simulations, n_scrambles):
+
+        number_samples = simulations.shape[0]
+        paths_scramble = number_samples/n_scrambles
+        x_tmp = []
+
+        for i in range(0, n_scrambles):
+            from_i = int(i*paths_scramble)
+            to_i = int((i+1)*paths_scramble)
+            x_tmp.append(np.mean(simulations[from_i:to_i], axis=0))
+
+        std = np.array(x_tmp).std(axis=0)
+        error = std/np.sqrt(n_scrambles)
+
+        return std, 3*error
+
+
     def store_data(self, file):
         with open(file) as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
@@ -40,7 +63,7 @@ class ResultSimulatorObj():
 
 class ProcessSimulatorQMeasure():
 
-    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", nr_processes=3):
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", nr_processes=3, n_scrambles=32):
 
         self.number_samples = number_samples
         self.number_time_steps = number_time_steps
@@ -50,12 +73,13 @@ class ProcessSimulatorQMeasure():
         self.time_grid = np.arange(0, self.number_time_steps + 1) * self.dt
         self.measure = "Risk Neutral"
         self.nr_processes = nr_processes
+        self.n_scrambles = n_scrambles
 
 
 
     def simulate_xy(self, kappa: float, local_volatility: LinearLocalVolatility, parallel_simulation=False) -> ResultSimulatorObj:
 
-        random_numbers = self.random_number_generator(self.number_samples, self.number_time_steps)
+        random_numbers = self.random_number_generator(self.number_samples, self.number_time_steps, self.dt*self.number_time_steps, self.n_scrambles)
         chunksize = 100
         futures = []
         if parallel_simulation:
@@ -89,7 +113,6 @@ class ProcessSimulatorQMeasure():
 
         x = np.zeros(shape=(number_samples, number_time_steps + 1))
         y = np.zeros(shape=(number_samples, number_time_steps + 1))
-        sqrt_dt = np.sqrt(self.dt)
 
         for i in np.arange(0, number_samples):
             print("Simulation: " + str(i+chunk_sim))
@@ -101,7 +124,7 @@ class ProcessSimulatorQMeasure():
                 # y[i][j + 1] = y[i][j] + (np.power(eta, 2) - 2 * kappa * y[i][j]) * self.dt
 
                 x[i][j + 1] = x[i][j] + self.get_drift_x(kappa, y[i][j], x[i][j], eta, t) * self.dt + eta * \
-                              random_numbers[i][j] * sqrt_dt
+                              random_numbers[i][j]
                 y[i][j + 1] = y[i][j] + self.get_drift_y(eta, kappa, y[i][j]) * self.dt
         return x, y
 
@@ -117,8 +140,8 @@ class ProcessSimulatorQMeasure():
 
 class ProcessSimulatorAnnuity(ProcessSimulatorQMeasure):
 
-    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type, annuity_measure, annuity_pricer: AnnuityPricer, nr_processes=3):
-        super(ProcessSimulatorAnnuity, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type, nr_processes)
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type, annuity_measure, annuity_pricer: AnnuityPricer, nr_processes=3, n_scrambles=32):
+        super(ProcessSimulatorAnnuity, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type, nr_processes, n_scrambles)
         self.annuity_measure = annuity_measure
         self.annuity_pricer = annuity_pricer
         self.measure = self.annuity_measure
@@ -130,13 +153,13 @@ class ProcessSimulatorAnnuity(ProcessSimulatorQMeasure):
 
 
 class ProcessSimulatorTerminalMeasure(ProcessSimulatorQMeasure):
-    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", bond=None, bond_pricer: BondPricer = None, nr_processes=3):
-        super(ProcessSimulatorTerminalMeasure, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type, nr_processes)
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal",
+                 bond:Bond =None, bond_pricer: BondPricer = None, nr_processes=3, n_scrambles=32):
+        super(ProcessSimulatorTerminalMeasure, self).__init__(number_samples, number_time_steps, dt, random_number_generator_type, nr_processes, n_scrambles)
         self.bond_pricer = bond_pricer
         self.bond = bond
         self.measure = self.bond
 
     def get_drift_x(self, kappa, y_prev, x_prev, eta, t):
-        return super(ProcessSimulatorTerminalMeasure, self).get_drift_x(kappa, y_prev, x_prev, eta, t) + 1/ \
-               self.bond_pricer.price(self.bond, x_prev, y_prev, t) * \
-               self.bond_pricer.dpdx(self.bond, x_prev, y_prev, t) * np.power(eta, 2)
+        return super(ProcessSimulatorTerminalMeasure, self).get_drift_x(kappa, y_prev, x_prev, eta, t) - \
+               calculate_G(kappa, t, self.bond.maturity) * np.power(eta, 2)

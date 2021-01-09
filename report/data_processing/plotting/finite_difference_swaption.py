@@ -10,7 +10,7 @@ def process_all(file_directory):
         file = os.path.join(file_directory, file)
         output_data_ls.append(process_swaption_fd(file))
     output_data = pd.concat(output_data_ls)
-    output_data = output_data.sort_values(by=["strike", "t_grid_size"])
+    output_data = output_data.sort_values(by=["expiry", "maturity", "vola_lambda", "vola_alpha", "vola_beta", "strike"])
     return output_data
 
 def dataframe_format(df):
@@ -25,6 +25,6 @@ def process_swaption_fd(input_file):
     return meta_data
 
 
-input_dir = os.path.join(output_data_raw, "finite_difference", "swaption", "2020_12_21")
+input_dir = os.path.join(output_data_raw, "finite_difference", "swaption", "2021_01_08")
 
 process_all(input_dir)

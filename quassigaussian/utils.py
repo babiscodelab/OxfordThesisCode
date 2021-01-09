@@ -1,27 +1,38 @@
 import numpy as np
 import scipy
 from sobol import sobol, scramble
+from brownian_bridge import bb
+
 
 def calculate_G(kappa, t, T):
     return (1/kappa) * (1 - np.exp(-kappa*(T-t)))
 
 
-def generate_normal_random_numbers(number_paths, number_time_steps):
+def generate_normal_random_numbers(number_paths, number_time_steps, T, number_scrambles=16):
     np.random.seed(42)
 
     path1 = np.random.normal(size=(int(number_paths/2), number_time_steps))
     path2 = -path1
-    return np.vstack((path1, path2))
-    #return np.random.normal(size=(number_paths, number_time_steps))
+    res = np.vstack((path1, path2))
+    res = res * np.sqrt(T/number_time_steps)
+    return res
+
+def generate_sobol_numbers(number_paths, number_time_steps, T, number_scrambles=16):
 
 
-def generate_sobol_numbers(number_paths, number_time_steps):
+    unscrambled = sobol(m=int(np.log2(number_paths/number_scrambles)), s=number_time_steps, scramble=False)
 
-    unscrambled = sobol(m=int(np.log2(number_paths)), s= number_time_steps, scramble=True)
+    all_dW = []
+    for m in range(1, number_scrambles + 1):
+        U = scramble(unscrambled).T
+        Z = scipy.stats.norm.ppf(U)
+        dW = bb(Z, T)
+        all_dW.append(dW)
+
     #U = scramble(unscrambled).T  # generate set of M Sobol points
-    res = unscrambled
+    res = np.hstack(all_dW)
 
-    return scipy.stats.norm.ppf(res)  # inverts Normal cum. fn.
+    return res.T
 
 
 

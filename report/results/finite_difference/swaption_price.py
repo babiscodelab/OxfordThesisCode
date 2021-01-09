@@ -33,9 +33,9 @@ def adi_swaption_report():
     coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
 
     swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
-
+    #swap_ls = [(5, 10)]
     finite_difference_grid_df = finite_difference_grid_df.iloc[4:]
-    vola_grid_df = vola_grid_df.iloc[9:10]
+    #vola_grid_df = vola_grid_df.iloc[9:10]
 
     for swap_exp_mat in swap_ls:
         expiry, maturity = swap_exp_mat

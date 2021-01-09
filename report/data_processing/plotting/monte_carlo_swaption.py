@@ -23,7 +23,7 @@ def read_results(file_directory):
 def calculate_implied_vola(swaption_value):
     pass
 
-file_dir = os.path.join(output_data_raw, "monte_carlo", "swaption", "2021_01_03")
+file_dir = os.path.join(output_data_raw, "monte_carlo", "swaption", "2021_01_07")
 all_df = read_results(file_dir)
 
 print("paus")

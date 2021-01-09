@@ -20,7 +20,7 @@ def mc_swaption_report():
     output_file = os.path.join(output_path, "swaption_price_mc.hdf")
     file_path = get_nonexistant_path(output_file)
 
-    random_number_generator_type = "normal"
+    random_number_generator_type = "sobol"
     curve_rate = 0.06
     kappa_grid = [0.03]
 
@@ -32,9 +32,12 @@ def mc_swaption_report():
     coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
     vola_grid_df = vola_grid_df.iloc[9:10]
 
-    number_paths = np.power(2, 16)
-    number_time_steps = np.power(2, 10)
+    number_paths = np.power(2, 17)
+    number_time_steps = np.power(2, 11)
     swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
+    swap_ls = [(5, 10),  (10, 20), (20, 30)]
+
+    #swap_ls = [(1, 11)]
 
     for swap_exp_mat in swap_ls:
         print("swap: ", swap_exp_mat)
@@ -52,7 +55,7 @@ def mc_swaption_report():
                 process_simulator = ProcessSimulatorTerminalMeasure(number_paths, number_time_steps,
                                                              expiry / number_time_steps,
                                                              random_number_generator_type, bond_measure,
-                                                                    swap_pricer.bond_pricer)
+                                                                    swap_pricer.bond_pricer, nr_processes=6)
 
                 result_obj = process_simulator.simulate_xy(kappa, loca_vola, parallel_simulation=True)
 
@@ -63,10 +66,10 @@ def mc_swaption_report():
 
                     swaption_value_paths_cv = apply_control_variate(result_obj.x[:,-1], result_obj.y[:,-1], swaption_value_paths, bond_measure, swap_pricer.bond_pricer)
                     swaption_value_mean = swaption_value_paths.mean()
-                    swaption_value_error = 3*swaption_value_paths.std()/np.sqrt(number_paths)
+                    std, swaption_value_error = result_obj.calculate_std_error(swaption_value_paths, result_obj.n_scrambles)
 
                     swaption_value_mean_cv = swaption_value_paths_cv.mean()
-                    swaption_value_error_cv = 3 * swaption_value_paths_cv.std() / np.sqrt(number_paths)
+                    std, swaption_value_error_cv = result_obj.calculate_std_error(swaption_value_paths_cv, result_obj.n_scrambles)
                     bond_pricer = swap_pricer.bond_pricer
                     output_data = {"number_paths": number_paths, "number_time_steps": number_time_steps,
                                    "random_number_generator_type": random_number_generator_type, "expiry": expiry,

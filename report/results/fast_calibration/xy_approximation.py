@@ -11,7 +11,7 @@ from report.utils import get_nonexistant_path
 from quassigaussian.fastcalibration.approximation import PiterbargExpectationApproximator, RungeKuttaApproximator
 
 output_data_raw_approx = os.path.join(output_data_raw, "approximation", "xy_approx")
-NR_PROCESSES = 3
+NR_PROCESSES = 6
 
 def compare_approximated_values():
 
@@ -27,8 +27,8 @@ def compare_approximated_values():
 
     output_path = get_nonexistant_path(output_path)
 
-    number_samples = 1024
-    number_steps = 128
+    number_samples = 4096
+    number_steps = 256
 
     swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
 
@@ -50,7 +50,7 @@ def compare_approximated_values():
                 # loca_vola = LinearLocalVolatility.from_swap_const(swap, swap_pricer, vola_grid_row["lambda"], vola_grid_row["beta"])
 
                 res_annuity_mc = simulate_xy(kappa, loca_vola, number_samples, number_steps, dt, random_number_generator_type,
-                                             swap.annuity, swap_pricer.annuity_pricer)
+                                             swap.annuity, swap_pricer.annuity_pricer, 32)
                 res_approx_xy = calculate_approximation_xy(res_annuity_mc.time_grid, swap, loca_vola, swap_pricer)
                 runge_kutta_approx_df = runge_kutta_solution(res_annuity_mc.time_grid, swap, loca_vola, swap_pricer)
 
@@ -61,7 +61,10 @@ def compare_approximated_values():
                              "lambda value": [float(loca_vola.lambda_t(0))],
                              "alpha": [float(loca_vola.alpha_t(0))], "beta": [float(loca_vola.b_t(0))],
                              "number samples": [number_samples], "number steps": [number_steps],
-                             "curve rate": [curve_rate], 'random number generator type': random_number_generator_type})
+                             "number_scrambles": [res_annuity_mc.n_scrambles],
+                             "curve rate": [curve_rate], 'random number generator type': random_number_generator_type,
+                             "n_scrambles": [res_annuity_mc.n_scrambles]})
+
                 output_file = os.path.join(output_path, "xy_approx.hdf")
                 file_path = get_nonexistant_path(output_file)
 
@@ -70,8 +73,9 @@ def compare_approximated_values():
 
 
 
-def simulate_xy(kappa, local_volatility, number_samples, number_steps, dt, random_number_generator_type, annuity, annuity_pricer):
-    x_simulator = ProcessSimulatorAnnuity(number_samples, number_steps, dt, random_number_generator_type, annuity, annuity_pricer, nr_processes=NR_PROCESSES)
+def simulate_xy(kappa, local_volatility, number_samples, number_steps, dt, random_number_generator_type, annuity, annuity_pricer, n_scrambles=32):
+    x_simulator = ProcessSimulatorAnnuity(number_samples, number_steps, dt, random_number_generator_type,
+                                          annuity, annuity_pricer, nr_processes=NR_PROCESSES, n_scrambles=n_scrambles)
     res_annuity = x_simulator.simulate_xy(kappa=kappa, local_volatility=local_volatility, parallel_simulation=True)
     return res_annuity
 
