@@ -1,11 +1,12 @@
-from quassigaussian.fastcalibration.approximation import DisplacedDiffusionParameterApproximator, PiterbargExpectationApproximator, RungeKuttaApproximator
+from quassigaussian.fastcalibration.approximation import DisplacedDiffusionParameterApproximator, PiterbargExpectationApproximator
+from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.pricer import SwapPricer, BondPricer
 from quassigaussian.products.instruments import Swap, Swaption
 from quassigaussian.curves.libor import LiborCurve
 import numpy as np
-from quassigaussian.fastcalibration.parameter_averaging import calculate_swaption_approx_price, w_s_wrapper
-
+from quassigaussian.fastcalibration.parameter_averaging import calculate_swaption_approx_price, w_s_wrapper, calculate_vola_skew, lognormalimpliedvola
+from quassigaussian.fastcalibration.discrete_averaging import DiscreteParameterAveraging
 
 
 def test_runge_kutta_approx():
@@ -21,11 +22,9 @@ def test_runge_kutta_approx():
 
     swap0 = swap_pricer.price(swap, 0, 0, 0)
 
-    annuity = swap.annuity
-    annuity_pricer = swap_pricer.annuity_pricer
-
-    rk_approx = RungeKuttaApproximator(sigma_r, swap_pricer, annuity, annuity_pricer)
-    res = rk_approx.approximate_x_y()
+    integration_grid_size = 2*10 + 1
+    rk_approx = RungeKuttaApproxXY(integration_grid_size, swap_pricer, sigma_r, swap)
+    res = rk_approx.calculate_xy()
 
     piterbarg_approx = PiterbargExpectationApproximator(sigma_r, swap_pricer)
 
@@ -91,49 +90,66 @@ def test_linear_local_volatility_approximation():
 
     displaced_diffusion = DisplacedDiffusionParameterApproximator(sigma_r, swap_pricer, swap, piterbarg_approx)
 
-    lambda_s, b_s = displaced_diffusion.approximate_parameters(1)
-
     pass
 
 
 def test_swaption_price():
 
-    kappa = 0.3
-    t = 15
-    swaption_expiry = 5
+    kappa = 0.03
 
-    swap_start = swaption_expiry
-    swap_maturity = 10
+    swaption_expiry = 4
+    swap_maturity = 5
     swap_freq = 0.5
 
     initial_curve = LiborCurve.from_constant_rate(0.06)
     swap_pricer = SwapPricer(initial_curve, kappa=kappa)
 
-    sigma_r = LinearLocalVolatility.from_const(t, 0.5, 0.1, 0.2)
+    sigma_r = LinearLocalVolatility.from_const(swap_maturity, 0.4, 0.1, 0)
 
     piterbarg_approx = PiterbargExpectationApproximator(sigma_r, swap_pricer)
     swap = Swap(swaption_expiry, swap_maturity, swap_freq)
 
     displaced_diffusion = DisplacedDiffusionParameterApproximator(sigma_r, swap_pricer, swap, piterbarg_approx)
-    bond_pricer = BondPricer(initial_curve, kappa)
     coupon = swap_pricer.price(swap, 0, 0, 0)
 
     swaption = Swaption(swaption_expiry, coupon, swap)
 
-
     b_s = displaced_diffusion.calculate_bs
-    swaption_value, black_implied_vola = calculate_swaption_approx_price(swaption, swap_pricer, displaced_diffusion.calculate_lambda_square, b_s)
+    lambda_s_bar, b_bar = calculate_vola_skew(swaption.expiry, displaced_diffusion.calculate_lambda_square, b_s)
 
+    swaption_value, black_implied_vola = lognormalimpliedvola(swaption, swap_pricer, lambda_s_bar, b_bar)
+
+    print(lambda_s_bar, b_bar)
     print(swaption_value, black_implied_vola)
-    # swap = Swap(29, 30, frequency=0.5)
-    #
-    # swap_0 = piterbarg_approx.swap_pricer.price(swap, 0, 0, 0)
-    #
-    # x0 = piterbarg_approx._calculate_x0(t, swap, swap_0, y_bar_actual)
-    #
-    # x_bar = piterbarg_approx._calculate_xbar(t, y_bar_actual, swap, swap_0)
-    #
-    # swap_price = swap_pricer.price(swap, x=0, y=0, t=t)
-    #
-    # x_simple = piterbarg_approx.x_bar_simple(t, swap_price, swap)
-    # print("pause")
+
+
+
+
+
+def test_approx():
+    kappa = 0.03
+
+    initial_curve = LiborCurve.from_constant_rate(0.06)
+    swap_pricer = SwapPricer(initial_curve, kappa=kappa)
+
+    sigma_r = LinearLocalVolatility.from_const(15, 0.4, 0.06, 0.2)
+    swaption_expiry = 4
+    swap = Swap(swaption_expiry, 5, 0.5)
+
+    coupon = swap_pricer.price(swap, 0, 0, 0)
+
+    swaption = Swaption(swaption_expiry, coupon, swap)
+    xyapproximator = RungeKuttaApproxXY
+    #xyapproximator = PitergargDiscreteXY
+
+    for xyapproximator in [RungeKuttaApproxXY, PitergargDiscreteXY]:
+        for k in [16]:
+            grid_size = 2**k + 1
+            #xy_calculator = PitergargDiscreteXY(grid_size, swap_pricer, sigma_r, swap)
+            xy_calculator = xyapproximator(grid_size, swap_pricer, sigma_r, swap)
+            integration_approx = DiscreteParameterAveraging(grid_size, swap_pricer, sigma_r, swap, xy_calculator)
+            lambda_avg, beta_avg = integration_approx.calculate_average_param()
+            swaption_value, black_implied_vola = lognormalimpliedvola(swaption, swap_pricer, lambda_avg, beta_avg)
+
+            print(lambda_avg, beta_avg)
+            print(swaption_value, black_implied_vola)

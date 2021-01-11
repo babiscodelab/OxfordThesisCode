@@ -9,12 +9,16 @@ import matplotlib.pyplot as plt
 from report.directories import output_data_raw, output_plots_swaption, date_timestamp
 from report.config import outp_file_format
 
-def load_swaption_data(path_mc, path_fd):
+def load_swaption_data(path_fast_approx, path_mc, path_fd):
 
+    join_on = ["expiry", "maturity", "strike", "moneyness", "vola_lambda",
+                            "vola_alpha", "vola_beta", "curve_rate", "kappa", "atm strike"]
+    fast_approx = pd.read_hdf(path_fast_approx)
     mc_results = process_mc(path_mc)
     fd_results = process_fd(path_fd)
-    all_results = pd.merge(mc_results, fd_results, on=["expiry", "maturity", "strike", "moneyness", "vola_lambda",
-                            "vola_alpha", "vola_beta", "curve_rate", "kappa", "atm strike"], suffixes=("_mc", "_fd"))
+    all_results = pd.merge(mc_results, mc_results, on=join_on, suffixes=("_mc", "_fd"))
+
+    all_results = pd.merge(fast_approx, fd_results, on=join_on)
     return all_results
 
 def plot_implied_vola(results, outp_path):
@@ -71,10 +75,11 @@ def plot_all(all_results, output_path):
 
 fd_file = os.path.join(output_data_raw, "finite_difference", "swaption", "2021_01_08")
 mc_file = os.path.join(output_data_raw, "monte_carlo", "swaption", "2021_01_07")
+approx_file = os.path.join(output_data_raw, "approximation", "piterbarg_swaption_approx", "2021_01_11", "result", 'swaption_approximation-2.hdf')
 
 output_swaption = os.path.join(output_plots_swaption)
 
-all_results = load_swaption_data(mc_file, fd_file)
+all_results = load_swaption_data(approx_file, mc_file, fd_file)
 
 output_path = os.path.join(output_swaption, date_timestamp)
 output_path = get_nonexistant_path(output_path)

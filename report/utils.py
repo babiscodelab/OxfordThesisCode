@@ -28,9 +28,6 @@ def get_nonexistant_path(fname_path):
         i += 1
         new_fname = "{}-{}{}".format(filename, i, file_extension)
 
-    if not os.path.exists(new_fname):
-        os.mkdir(new_fname)
-
     return new_fname
 
 

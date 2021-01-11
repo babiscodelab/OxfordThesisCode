@@ -4,13 +4,19 @@ from quassigaussian.products.instruments import Swaption
 from quassigaussian.products.pricer import Black76Pricer, find_implied_black_vola, SwapPricer
 
 
+
+def lognormalimpliedvola(swaption: Swaption, swap_pricer: SwapPricer, lambda_s_bar, b_bar):
+
+    black76price = Black76Pricer(lambda_s_bar, b_bar, swap_pricer, swap_pricer.bond_pricer)
+    swaption_value = black76price.black76_price(swaption)
+    black_implied_vola = find_implied_black_vola(swaption_value, swaption, swap_pricer, swap_pricer.bond_pricer)
+
+    return swaption_value, black_implied_vola
+
+
 def calculate_swaption_approx_price(swaption: Swaption, swap_pricer: SwapPricer, lambda_square, b_s):
 
-    lambda_integral = calculate_lambda_integral_callable(lambda_square)
-    lambda_s_bar = calculate_lambda_s_bar(lambda_integral, swaption.expiry)
-
-    w_s = w_s_wrapper(swaption.expiry, lambda_square, lambda_integral)
-    b_bar = calculate_b_s_bar(w_s, b_s, swaption.expiry)
+    lambda_s_bar, b_bar = calculate_vola_skew(swaption.expiry, lambda_square, b_s)
 
     black76price = Black76Pricer(lambda_s_bar, b_bar, swap_pricer, swap_pricer.bond_pricer)
 
@@ -19,7 +25,13 @@ def calculate_swaption_approx_price(swaption: Swaption, swap_pricer: SwapPricer,
 
     return swaption_value, black_implied_vola
 
+def calculate_vola_skew(expiry, lambda_square, b_s):
+    lambda_integral = calculate_lambda_integral_callable(lambda_square)
+    lambda_s_bar = calculate_lambda_s_bar(lambda_integral, expiry)
 
+    w_s = w_s_wrapper(expiry, lambda_square, lambda_integral)
+    b_bar = calculate_b_s_bar(w_s, b_s, expiry)
+    return lambda_s_bar, b_bar
 
 def calculate_lambda_integral_callable(lambda_square):
     def calculate_lambda_integral(t_to: float):

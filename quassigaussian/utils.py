@@ -43,3 +43,10 @@ def get_random_number_generator(type):
         return generate_sobol_numbers
     else:
         raise Exception("Type not well defined")
+
+def midpoint(f, a, b, n, *args, **kwargs):
+    assert a == 0
+    n = n - 1
+    h = float(b - a) / n
+    x = np.linspace(a + h / 2, b - h / 2, n)
+    return np.append(np.array([0]), h * np.cumsum(f(x, *args, **kwargs)))

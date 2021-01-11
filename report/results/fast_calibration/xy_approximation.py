@@ -100,7 +100,7 @@ def calculate_approximation_xy(time_grid, swap, loca_vola, swap_pricer):
 def runge_kutta_solution(time_grid, swap, loca_vola, swap_pricer):
 
     rk_approx = RungeKuttaApproximator(loca_vola, swap_pricer, swap.annuity, swap_pricer.annuity_pricer)
-    res = rk_approx.approximate_x_y(time_grid)
+    res = rk_approx.approximate_xy(time_grid)
 
     df = pd.DataFrame({"x_runge_kutta": res.y[0],
                   "y_runge_kutta": res.y[1],

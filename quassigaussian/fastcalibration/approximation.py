@@ -8,32 +8,6 @@ from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 from scipy.interpolate.interpolate import interp1d
 from scipy.integrate import solve_ivp
 
-class RungeKuttaApproximator():
-
-
-    def __init__(self, sigma_r: LinearLocalVolatility, swap_pricer: SwapPricer, annuity, annuity_pricer: AnnuityPricer):
-        self.g_t = lambda t: np.exp(-swap_pricer.kappa * t)
-        self.sigma_r = sigma_r
-        self.swap_pricer = swap_pricer
-        self.capital_x = CapitalX(swap_pricer)
-        self.kappa = self.swap_pricer.kappa
-        self.annuity = annuity
-        self.annuity_pricer = annuity_pricer
-
-    def rhs_system(self, t, xy):
-
-        x = xy[0]
-        y = xy[1]
-
-        rhs_x = -self.kappa*x + y + \
-        self.annuity_pricer.annuity_dx(t, x, y, self.kappa, self.annuity)*1/self.annuity_pricer.annuity_price(t, x, y, self.annuity)\
-                *(np.square(self.sigma_r.calculate_vola(t, x)))
-        rhs_y = np.square(self.sigma_r.calculate_vola(t, x)) - 2*self.kappa*y
-        return np.array([rhs_x, rhs_y])
-
-    def approximate_x_y(self, time_grid):
-        sol = solve_ivp(self.rhs_system, t_span=[time_grid[0], time_grid[-1]], y0=np.array([0, 0]), t_eval=time_grid)
-        return sol
 
 class PiterbargExpectationApproximator():
 
@@ -48,14 +22,13 @@ class PiterbargExpectationApproximator():
     def calculate_sigma_0(self, t):
         return self.sigma_r.calculate_vola(x=0, t=t)
 
+    def ybar_integrand(self, s):
+        return np.power(self.calculate_sigma_0(s) * 1 / self.g_t(s), 2)
+
     def ybar_formula(self, t):
+        return np.power(self.g_t(t), 2) * integrate.quad(self.ybar_integrand, 0, t)[0]
 
-        def integrand(s):
-            return np.power(self.calculate_sigma_0(s) * 1 / self.g_t(s), 2)
-
-        return np.power(self.g_t(t), 2) * integrate.quad(integrand, 0, t)[0]
-
-    def _calculate_x0(self, t, swap, s0, y_bar, x0_guess=0):
+    def calculate_x0(self, t, swap, s0, y_bar, x0_guess=0):
 
         def _solve_for_x0(x_bar, swap, s0, t, y_bar):
             return self.swap_pricer.price(swap, x_bar, y_bar, t) - s0
@@ -64,18 +37,17 @@ class PiterbargExpectationApproximator():
 
     def xbar_formula(self, t, y_bar, swap, s0, x0_guess=0):
         # See Piterbarg p546. However, he forgot 0.5
-        x0 = self._calculate_x0(t, swap, s0, y_bar, x0_guess)
-        var_s = self._calculate_var_s(t, swap)
+        x0 = self.calculate_x0(t, swap, s0, y_bar, x0_guess)
+        var_s = self.calculate_var_s(t, swap)
         x_bar = x0 + 0.5 * var_s * self.capital_x.d2xds2(swap, x0, y_bar, t)
 
         return x_bar
 
-    def _calculate_var_s(self, t, swap):
+    def var_s_integrand(self, s, swap):
+        return np.power(self.swap_pricer.dsdx(swap, 0, 0, s) * self.calculate_sigma_0(s), 2)
 
-        def integrand(s):
-            return np.power(self.swap_pricer.dsdx(swap, 0, 0, s) * self.calculate_sigma_0(s), 2)
-
-        return integrate.quad(integrand, 0, t)[0]
+    def calculate_var_s(self, t, swap):
+        return integrate.quad(self.var_s_integrand, 0, t, args=(swap, ))[0]
 
     def calculate_ksi(self, t, swap_value, swap):
 
