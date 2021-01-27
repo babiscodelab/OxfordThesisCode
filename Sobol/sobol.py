@@ -3,7 +3,7 @@ import sys
 import os
 import numpy as np
 sys.path.append(os.path.realpath(__file__))
-from digitalseq_b2g import digitalseq_b2g
+from Sobol.digitalseq_b2g import digitalseq_b2g
 from numpy.random import randint
 from numpy import vstack, array
 

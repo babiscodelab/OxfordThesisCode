@@ -5,7 +5,7 @@ from quassigaussian.products.pricer import AnnuityPricer, BondPricer
 from quassigaussian.products.instruments import Annuity, Bond
 from quassigaussian.volatility.local_volatility import LinearLocalVolatility
 import pickle
-from executor import Executor
+from quassigaussian.executor import Executor
 from quassigaussian.utils import calculate_G
 
 class ResultSimulatorObj():

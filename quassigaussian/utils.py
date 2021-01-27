@@ -1,7 +1,7 @@
 import numpy as np
 import scipy
-from sobol import sobol, scramble
-from brownian_bridge import bb
+from Sobol.sobol import sobol, scramble
+from Sobol.brownian_bridge import bb
 
 
 def calculate_G(kappa, t, T):
