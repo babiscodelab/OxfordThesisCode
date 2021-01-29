@@ -16,7 +16,7 @@ def load_swaption_data(path_fast_approx, path_mc, path_fd):
     fast_approx = pd.read_hdf(path_fast_approx)
     mc_results = process_mc(path_mc)
     fd_results = process_fd(path_fd)
-    all_results = pd.merge(mc_results, mc_results, on=join_on, suffixes=("_mc", "_fd"))
+    all_results = pd.merge(mc_results, fd_results, on=join_on, suffixes=("_mc", "_fd"))
 
     all_results = pd.merge(fast_approx, fd_results, on=join_on)
     return all_results
@@ -76,6 +76,8 @@ def plot_all(all_results, output_path):
 fd_file = os.path.join(output_data_raw, "finite_difference", "swaption", "2021_01_08")
 mc_file = os.path.join(output_data_raw, "monte_carlo", "swaption", "2021_01_07")
 approx_file = os.path.join(output_data_raw, "approximation", "piterbarg_swaption_approx", "2021_01_11", "result", 'swaption_approximation-2.hdf')
+approx_file = os.path.join(output_data_raw, "approximation", "piterbarg_swaption_approx", "2021_01_10", "result", 'swaption_approximation.hdf')
+
 
 output_swaption = os.path.join(output_plots_swaption)
 

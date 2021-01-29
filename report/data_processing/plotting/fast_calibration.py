@@ -26,7 +26,7 @@ def plot_x(output_data, meta_data):
     ax1.plot(time_grid, output_data["x bar mc"], label="Monte Carlo Simulation", color='b')
     ax1.plot(time_grid, output_data["x_runge_kutta"], label="Runge Kutta", color='g')
 
-    error_x = ResultSimulatorObj.calculate_std_error(output_data["x bar mc"], output_data["n_scrambles"])
+    error_x = 3*output_data["x std mc"]/np.sqrt(meta_data["number_scrambles"])
     upper = output_data["x bar mc"] + error_x
     lower = output_data["x bar mc"] - error_x
 
@@ -58,9 +58,9 @@ def plot_y(output_data, meta_data):
     ax1.plot(time_grid, output_data["y_runge_kutta"], label="Runge Kutta", color='g')
 
     # TODO not correct.
-    error_y =  ResultSimulatorObj.calculate_std_error(output_data["y bar mc"], output_data["n_scrambles"])
-    upper = output_data["y bar mc"] + 3 * output_data["y std mc"]/np.sqrt(meta_data["number samples"])
-    lower = output_data["y bar mc"] - 3 * output_data["y std mc"]/np.sqrt(meta_data["number samples"])
+    error_y = 3*output_data["y std mc"]/np.sqrt(meta_data["number_scrambles"])
+    upper = output_data["y bar mc"] + error_y
+    lower = output_data["y bar mc"] - error_y
 
     ax1.fill_between(time_grid, lower, upper, label="3 std conf level", alpha=0.28)
 
@@ -92,6 +92,6 @@ def table_result(output_data, meta_data):
     pass
 
 if __name__ == "__main__":
-    input_dir = os.path.join(output_data_raw, "approximation", "xy_approx", "2021_01_04", "result-6")
+    input_dir = os.path.join(output_data_raw, "approximation", "xy_approx", "2021_01_28", "result")
     process_all(input_dir)
     plt.show()

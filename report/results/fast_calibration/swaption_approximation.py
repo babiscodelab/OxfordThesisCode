@@ -34,6 +34,7 @@ def calculate_swaption_prices():
 
     coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
 
+    XYApproximator = PitergargDiscreteXY
 
     swap_ls = [(1,6), (5, 10), (10, 20), (20, 30), (25, 30)]
     #vola_grid_df = vola_grid_df.iloc[9:10]
@@ -54,7 +55,7 @@ def calculate_swaption_prices():
                 atm_swap_price = swap_pricer.price(swap, 0, 0, 0)
                 strike_grid = [atm_swap_price + coupon for coupon in coupon_grid]
 
-                xy_calculator = PitergargDiscreteXY(grid_size, swap_pricer, sigma_r, swap)
+                xy_calculator = XYApproximator(grid_size, swap_pricer, sigma_r, swap)
                 integration_approx = DiscreteParameterAveraging(grid_size, swap_pricer, sigma_r, swap, xy_calculator)
                 lambda_avg, beta_avg = integration_approx.calculate_average_param()
 
@@ -69,7 +70,8 @@ def calculate_swaption_prices():
                                                 "vola_alpha": [vola_grid_row["alpha"]],
                                                 "vola_beta": [vola_grid_row['beta']], "strike": [strike],
                                                 'moneyness': [strike-atm_swap_price], "curve_rate": [curve_rate],
-                                                "implied_black_vola": [black_implied_vola]})
+                                                "implied_black_vola": [black_implied_vola], 'integration_grid': [grid_size],
+                                                 "xy_approximation": [str(XYApproximator)]})
                     try:
                         all_output_data = pd.read_hdf(file_path, key="data")
                     except:

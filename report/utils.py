@@ -2,6 +2,8 @@ import os
 import json
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+from subprocess import Popen
+from datetime import datetime
 
 def get_nonexistant_path(fname_path):
     """
@@ -77,3 +79,19 @@ def splitpath(path, maxdepth=20):
  return splitpath(head, maxdepth - 1) + [ tail ] \
      if maxdepth and head and head != path \
      else [ head or tail ]
+
+
+
+tmp_path = os.path.join(os.path.realpath(__file__), "../../tmp/")
+
+
+def open_with_excel(df, fn=""):
+    dt = datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
+    file_path = os.path.join(tmp_path, "tmp_" + fn + dt + ".xlsx")
+
+    if not os.path.exists(tmp_path):
+        os.makedirs(tmp_path)
+    df.to_excel(file_path, index=False)
+    p = Popen(file_path, shell=True)
+
+    pass

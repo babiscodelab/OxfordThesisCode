@@ -8,7 +8,8 @@ import os
 from qgtests.utis import get_mock_yield_curve_const
 from report.directories import output_data_raw, date_timestamp
 from report.utils import get_nonexistant_path
-from quassigaussian.fastcalibration.approximation import PiterbargExpectationApproximator, RungeKuttaApproximator
+from quassigaussian.fastcalibration.approximation import PiterbargExpectationApproximator
+from quassigaussian.fastcalibration.numerical_integration import RungeKuttaApproxXY
 
 output_data_raw_approx = os.path.join(output_data_raw, "approximation", "xy_approx")
 NR_PROCESSES = 6
@@ -22,15 +23,15 @@ def compare_approximated_values():
     kappa_grid = [0.03]
     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
 
-    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.25, 0.45] for j in [0.05, 0.1, 0.3, 0.7]]
+    vola_parameters = [(i, curve_rate, j) for i in [0.20, 0.45] for j in [0.1, 0.7]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     output_path = get_nonexistant_path(output_path)
 
-    number_samples = 4096
-    number_steps = 256
+    number_samples = 2**15
+    number_steps = 1024
 
-    swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
+    swap_ls = [(5, 10), (10, 20), (20, 30)]
 
     #vola_grid_df = vola_grid_df[-1:]
 
@@ -99,11 +100,11 @@ def calculate_approximation_xy(time_grid, swap, loca_vola, swap_pricer):
 
 def runge_kutta_solution(time_grid, swap, loca_vola, swap_pricer):
 
-    rk_approx = RungeKuttaApproximator(loca_vola, swap_pricer, swap.annuity, swap_pricer.annuity_pricer)
-    res = rk_approx.approximate_xy(time_grid)
+    rk_approx = RungeKuttaApproxXY(len(time_grid), swap_pricer, loca_vola, swap)
+    x, y = rk_approx.calculate_xy()
 
-    df = pd.DataFrame({"x_runge_kutta": res.y[0],
-                  "y_runge_kutta": res.y[1],
+    df = pd.DataFrame({"x_runge_kutta": x,
+                  "y_runge_kutta": y,
                   "time grid": time_grid})
 
     return df
