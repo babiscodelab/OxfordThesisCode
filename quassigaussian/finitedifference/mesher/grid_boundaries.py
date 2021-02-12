@@ -43,19 +43,19 @@ def calculate_x_boundaries2(maturity, volatility: LocalVolatility, alpha=5):
 def calculate_y_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5):
 
     def exp_y_integral(u):
-        eta_square = np.power(volatility.calculate_vola(u, 0, 0), 2)
-        return eta_square * np.exp(-2*kappa*(maturity-u))
+        exp_x = np.power(volatility.calculate_vola(u,0,0), 2)/(2*np.power(kappa,2)) * (1-2*np.exp(-kappa*u) + np.exp(-2*kappa*u))
+        return 2*np.exp(-2*kappa*(maturity-u)) * exp_x * volatility.calculate_vola(u, 0, 0) * volatility.d_vola_dx(u, 0, 0)
 
     def var_y_integral(u):
-        variance_x = np.power(volatility.calculate_vola(0, 0, 0), 2) / (2 * kappa) * (1 - np.exp(-2 * kappa * u))
+        variance_x = np.power(volatility.calculate_vola(u, 0, 0), 2) / (2 * kappa) * (1 - np.exp(-2 * kappa * u))
         return 4*np.power(volatility.d_vola_dx(u, 0, 0), 2) * np.power(volatility.calculate_vola(u, 0, 0), 2) * np.exp(-4*kappa*(maturity-u)) * variance_x
 
     exp_y = integrate.quad(exp_y_integral, 0, maturity)[0]
     var_y = integrate.quad(var_y_integral, 0, maturity)[0]
 
     # y cannot be negative
-    y_min = 0
-    y_max = exp_y + alpha * np.sqrt(var_y)
+    y_min = exp_y -alpha * np.sqrt(var_y)
+    y_max = exp_y +alpha * np.sqrt(var_y)
 
     return y_min, y_max
 

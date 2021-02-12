@@ -29,7 +29,7 @@ def adi_swaption_report():
     #finite_difference_parameter = [(400, 800, 60)]
 
     #finite_difference_parameter = [(800, 1000, 100)]
-
+    finite_difference_parameter = [(200, 400, 100)]
 
     finite_difference_grid_df = pd.DataFrame(finite_difference_parameter, columns=["t_grid_size", "x_grid_size", "y_grid_size"])
     output_path = get_nonexistant_path(output_path)

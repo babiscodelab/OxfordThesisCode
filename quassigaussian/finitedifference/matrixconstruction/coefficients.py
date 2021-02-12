@@ -12,19 +12,20 @@ class CoefficientConstruction():
         self.local_volatility = local_volatility
 
     def update_coefficients(self, t):
-        self.mu_x = self.mu_x_calculate()
+        self.mu_x = self.mu_x_calculate(t)
         self.eta_sq = self.eta_sq_calculate(t)
         self.mu_y = self.mu_y_calculate(self.eta_sq)
         self.r = self.r_calculate(t)
 
-    def mu_x_calculate(self):
-        return (self.ymesh - self.kappa * self.xmesh)
+    def mu_x_calculate(self, t):
+        y_bar = np.power(self.local_volatility.calculate_vola(t, 0, 0), 2) / (2 * self.kappa) * (1 - np.exp(-2 * self.kappa * t))
+        return (self.ymesh - self.kappa * self.xmesh + y_bar)
 
     def eta_sq_calculate(self, t):
         return np.square(self.local_volatility.calculate_vola(t, self.xmesh, self.ymesh))
 
     def mu_y_calculate(self, eta_sq):
-        return eta_sq - 2*self.kappa*self.ymesh
+        return eta_sq - 2*self.kappa*self.ymesh - np.square(self.local_volatility.calculate_vola(0, 0, 0))
 
     def r_calculate(self, t):
         return self.initial_curve.get_inst_forward(t) + self.xmesh[:, 0]
