@@ -20,8 +20,8 @@ def mc_swaption_report():
     output_file = os.path.join(output_path, "swaption_price_mc.hdf")
     file_path = get_nonexistant_path(output_file)
 
-    random_number_generator_type = "sobol"
-    #random_number_generator_type = "normal"
+    #random_number_generator_type = "sobol"
+    random_number_generator_type = "normal"
 
     curve_rate = 0.06
     kappa_grid = [0.03]
@@ -29,20 +29,23 @@ def mc_swaption_report():
     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
 
     vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.2, 0.4, 0.5] for j in [0.05, 0.1, 0.3, 0.7]]
+
+    vola_parameters = [(i, curve_rate, j) for i in [0.4] for j in [0.3]]
+
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
-    vola_grid_df = vola_grid_df.iloc[[10]]
+    #vola_grid_df = vola_grid_df.iloc[[10]]
 
-    number_paths = np.power(2, 14)
-    number_time_steps = np.power(2, 12)
+    number_paths = np.power(2, 15)
+    number_time_steps = np.power(2, 11)
     swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
     swap_ls = [(5, 10),  (10, 20), (20, 30)]
 
     swap_ls = [(5, 10)]
     #swap_ls = [(1, 11)]
 
-    for number_paths in [np.power(2, 12), np.power(2, 13), np.power(2, 14), np.power(2, 15), np.power(2, 16), np.power(2, 17)]:
+    for number_paths in [np.power(2,12), np.power(2, 13), np.power(2, 14), np.power(2, 15), np.power(2, 16), np.power(2, 17)]:
         for swap_exp_mat in swap_ls:
             print("swap: ", swap_exp_mat)
             expiry, maturity = swap_exp_mat
@@ -59,9 +62,10 @@ def mc_swaption_report():
                     process_simulator = ProcessSimulatorTerminalMeasure(number_paths, number_time_steps,
                                                                  expiry / number_time_steps,
                                                                  random_number_generator_type, bond_measure,
-                                                                        swap_pricer.bond_pricer, nr_processes=1)
+                                                                        swap_pricer.bond_pricer, nr_processes=6,
+                                                                        n_scrambles=64)
 
-                    result_obj = process_simulator.simulate_xy(kappa, loca_vola, parallel_simulation=False)
+                    result_obj = process_simulator.simulate_xy(kappa, loca_vola, parallel_simulation=True)
 
                     for strike in strike_grid:
                         swaption = Swaption(expiry, strike, swap)

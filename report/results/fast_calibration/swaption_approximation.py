@@ -29,14 +29,14 @@ def calculate_swaption_prices():
     curve_rate = 0.06
     kappa_grid = [0.03]
 
-    vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.25, 0.45] for j in [0.05, 0.1, 0.3, 0.7]]
+    vola_parameters = [(i, curve_rate, j) for i in [0.2, 0.45] for j in [0.2, 0.35]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
 
     XYApproximator = PitergargDiscreteXY
 
-    swap_ls = [(1,6), (5, 10), (10, 20), (20, 30), (25, 30)]
+    swap_ls = [(20, 30)]
     #vola_grid_df = vola_grid_df.iloc[9:10]
 
 

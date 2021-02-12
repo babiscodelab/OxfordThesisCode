@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from subprocess import Popen
@@ -95,3 +96,26 @@ def open_with_excel(df, fn=""):
     p = Popen(file_path, shell=True)
 
     pass
+
+
+def read_results(file_directory, key=None):
+
+    all_df = []
+    for file in os.listdir(file_directory):
+        df = pd.read_hdf(os.path.join(file_directory, file), key=key)
+        all_df.append(df)
+    return pd.concat(all_df)
+
+
+
+def read_results_walk(file_directory, key=None):
+
+    all_df = []
+    for root, dirs, files in os.walk(file_directory):
+        for file in files:
+            df = pd.read_hdf(os.path.join(root, file), key=key)
+            all_df.append(df)
+    if all_df:
+        return pd.concat(all_df)
+    else:
+        return pd.DataFrame()
