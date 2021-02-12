@@ -25,10 +25,10 @@ def adi_swaption_report():
 
     finite_difference_parameter = [(100, 150, 10), (400, 800, 60)]
 
-    finite_difference_parameter = [(150, 200, 80)]
+    #finite_difference_parameter = [(150, 200, 40)]
     #finite_difference_parameter = [(400, 800, 60)]
 
-    #finite_difference_parameter = [(800, 1000, 100)]
+    finite_difference_parameter = [(150, 300, 200)]
 
 
     finite_difference_grid_df = pd.DataFrame(finite_difference_parameter, columns=["t_grid_size", "x_grid_size", "y_grid_size"])

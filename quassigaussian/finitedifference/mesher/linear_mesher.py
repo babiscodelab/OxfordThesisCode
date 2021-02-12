@@ -39,6 +39,8 @@ class Mesher2d():
 
         self.ygrid = np.linspace(ymin, ymax, ysize)
 
+        step_y = self.ygrid[2]-self.ygrid[1]
+        self.ygrid = np.append([self.ygrid[0] - step_y], self.ygrid)
 
         self.xmesh, self.ymesh = np.meshgrid(self.xgrid, self.ygrid, indexing='ij')
 
