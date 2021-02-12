@@ -47,6 +47,7 @@ class DouglasRachfordAdi():
             self.constructL1.update_data(eta_sq[:, j], mu_x[:, j], r)
             rhs = vold[1:-1, j] + (1-self.theta) * self.mesher.delta_t * l1_vold[:, j] + self.mesher.delta_t * l2_vold[1:-1, j]
             lhs_matrix = self.constructL1.l1_lhs
+            # pass th lhs omega to the right so you can solve for V
             lhs_omega = self.constructL1.calculate_omega_rhs(vold[:, j], l2_vold[:, j])
             rhs = lhs_omega*self.theta * self.mesher.delta_t + rhs
             u_temp[1:-1, j] = solve_banded_array(lhs_matrix, rhs)

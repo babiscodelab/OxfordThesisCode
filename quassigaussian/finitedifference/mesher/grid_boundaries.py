@@ -14,6 +14,25 @@ def calculate_x_boundaries(y, kappa, maturity, volatility: LinearLocalVolatility
     return x_min, x_max
 
 
+def calculate_x_moments(maturity, kappa, volatility: LocalVolatility):
+
+    exp_value = np.power(volatility.calculate_vola(0,0,0), 2)/(2*np.power(kappa,2)) * (1-2*np.exp(-kappa*maturity) + np.exp(-2*kappa*maturity))
+    variance = np.power(volatility.calculate_vola(0,0,0), 2)/(2*kappa) *(1-np.exp(-2*kappa*maturity))
+
+    return exp_value, variance
+
+def calculate_x_boundaries3(maturity, kappa, volatility: LocalVolatility, alpha=5):
+
+    exp_value, variance = calculate_x_moments(maturity, kappa, volatility)
+    xmax = exp_value + alpha*np.sqrt(variance)
+    xmin = exp_value - alpha*np.sqrt(variance)
+
+    return xmin, xmax
+
+def calculate_y_boundaries2(maturity, volatility: LocalVolatility, kappa):
+    return np.power(volatility.calculate_vola(0,0,0), 2)/(2*kappa)*(1-np.exp(-2*kappa*maturity))
+
+
 def calculate_x_boundaries2(maturity, volatility: LocalVolatility, alpha=5):
 
     x_max = alpha * volatility.calculate_vola(0, 0, 0) * np.sqrt(maturity)
@@ -28,7 +47,8 @@ def calculate_y_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5
         return eta_square * np.exp(-2*kappa*(maturity-u))
 
     def var_y_integral(u):
-        return 4*np.power(volatility.d_vola_dx(u, 0, 0), 2) * np.power(volatility.calculate_vola(u, 0, 0), 2) * np.exp(-4*kappa*(maturity-u))
+        variance_x = np.power(volatility.calculate_vola(0, 0, 0), 2) / (2 * kappa) * (1 - np.exp(-2 * kappa * u))
+        return 4*np.power(volatility.d_vola_dx(u, 0, 0), 2) * np.power(volatility.calculate_vola(u, 0, 0), 2) * np.exp(-4*kappa*(maturity-u)) * variance_x
 
     exp_y = integrate.quad(exp_y_integral, 0, maturity)[0]
     var_y = integrate.quad(var_y_integral, 0, maturity)[0]
