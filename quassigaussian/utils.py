@@ -9,7 +9,7 @@ def calculate_G(kappa, t, T):
 
 
 def generate_normal_random_numbers(number_paths, number_time_steps, T, number_scrambles=16):
-    np.random.seed(42)
+    np.random.seed(88)
 
     path1 = np.random.normal(size=(int(number_paths/2), number_time_steps))
     path2 = -path1
@@ -17,7 +17,7 @@ def generate_normal_random_numbers(number_paths, number_time_steps, T, number_sc
     res = res * np.sqrt(T/number_time_steps)
     return res
 
-def generate_sobol_numbers(number_paths, number_time_steps, T, number_scrambles=16):
+def generate_sobol_numbers(number_paths, number_time_steps, T, number_scrambles=32):
 
 
     unscrambled = sobol(m=int(np.log2(number_paths/number_scrambles)), s=number_time_steps, scramble=False)

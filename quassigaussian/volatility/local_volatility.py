@@ -48,8 +48,10 @@ class LinearLocalVolatility():
 
         alpha_t = interp1d(x, alpha_const*y, kind="previous")
         beta_const = swap_pricer.dsdx(swap, 0, 0, 0)*b_const
+
+        b_t = lambda t: beta_const*swap_pricer.dsdx(swap, 0, 0, t)
         lambda_t = interp1d(x, lambda_const * y, kind="previous")
-        b_t = interp1d(x, beta_const * y, kind='previous')
+        #b_t = interp1d(x, beta_const * y, kind='previous')
 
         return cls(lambda_t, alpha_t, b_t)
 

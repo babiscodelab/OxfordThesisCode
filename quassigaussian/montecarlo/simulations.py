@@ -10,7 +10,8 @@ from quassigaussian.utils import calculate_G
 
 class ResultSimulatorObj():
 
-    def __init__(self, x, y, time_grid, number_samples, number_time_steps, kappa, local_volatility: LinearLocalVolatility, measure, random_number_generator_type):
+    def __init__(self, x, y, time_grid, number_samples, number_time_steps, kappa, local_volatility: LinearLocalVolatility, measure,
+                 random_number_generator_type, nr_scrambles):
 
         self.x = x
         self.y = y
@@ -22,7 +23,7 @@ class ResultSimulatorObj():
 
         self.x_bar = x.mean(axis=0)
         self.y_bar = y.mean(axis=0)
-        self.n_scrambles = 32
+        self.n_scrambles = nr_scrambles
 
         self.x_std, self.x_error = self.calculate_std_error(x, self.n_scrambles)
         self.y_std, self.y_error = self.calculate_std_error(y, self.n_scrambles)
@@ -63,7 +64,7 @@ class ResultSimulatorObj():
 
 class ProcessSimulatorQMeasure():
 
-    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", nr_processes=3, n_scrambles=32):
+    def __init__(self, number_samples, number_time_steps, dt, random_number_generator_type="normal", nr_processes=3, n_scrambles=64):
 
         self.number_samples = number_samples
         self.number_time_steps = number_time_steps
@@ -100,12 +101,12 @@ class ProcessSimulatorQMeasure():
             all_x = np.concatenate(all_x)
             all_y = np.concatenate(all_y)
             return ResultSimulatorObj(all_x, all_y, self.time_grid, self.number_samples, self.number_time_steps, kappa,
-                                      local_volatility, self.measure, self.random_number_generator_type)
+                                      local_volatility, self.measure, self.random_number_generator_type, self.n_scrambles)
 
         else:
             x, y = self.simulate_process(kappa, local_volatility, random_numbers)
             return ResultSimulatorObj(x, y, self.time_grid, self.number_samples, self.number_time_steps, kappa,
-                                      local_volatility, self.measure, self.random_number_generator_type)
+                                      local_volatility, self.measure, self.random_number_generator_type, self.n_scrambles)
 
     def simulate_process(self, kappa: float, local_volatility: LinearLocalVolatility, random_numbers, chunk_sim=0):
 
