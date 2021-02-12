@@ -29,7 +29,7 @@ def calculate_x_boundaries3(maturity, kappa, volatility: LocalVolatility, alpha=
 
     return xmin, xmax
 
-def calculate_y_boundaries2(maturity, volatility: LocalVolatility, kappa):
+def calculate_y_bar(maturity, volatility: LocalVolatility, kappa):
     return np.power(volatility.calculate_vola(0,0,0), 2)/(2*kappa)*(1-np.exp(-2*kappa*maturity))
 
 
@@ -54,8 +54,8 @@ def calculate_y_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5
     var_y = integrate.quad(var_y_integral, 0, maturity)[0]
 
     # y cannot be negative
-    y_min = exp_y -alpha * np.sqrt(var_y)
-    y_max = exp_y +alpha * np.sqrt(var_y)
+    y_min =  -alpha * np.sqrt(var_y)
+    y_max =  +alpha * np.sqrt(var_y)
 
     return y_min, y_max
 

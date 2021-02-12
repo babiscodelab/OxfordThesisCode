@@ -29,7 +29,7 @@ def adi_swaption_report():
     #finite_difference_parameter = [(400, 800, 60)]
 
     #finite_difference_parameter = [(800, 1000, 100)]
-    finite_difference_parameter = [(200, 400, 100)]
+    finite_difference_parameter = [(300, 400, 120)]
 
     finite_difference_grid_df = pd.DataFrame(finite_difference_parameter, columns=["t_grid_size", "x_grid_size", "y_grid_size"])
     output_path = get_nonexistant_path(output_path)
@@ -70,7 +70,7 @@ def adi_swaption_report():
 
                         x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=3)
                         x_min, x_max = calculate_x_boundaries3(expiry, kappa, loca_vola, alpha=3)
-                        y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=3)
+                        y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=4)
 
                         mesher = Mesher2d()
                         mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max,
