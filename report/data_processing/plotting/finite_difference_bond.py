@@ -28,9 +28,11 @@ def process_all(file_directory):
         processed_data.append(tmp)
 
         x0_pos = np.where(xgrid == 0)[0][0]
+        y0_pos = np.where(ygrid == 0)[0][0]
 
-        plot_bond_price_for_different(xgrid, output_fd[0], bond_value[0], meta_data, "x")
-        plot_bond_price_for_different(ygrid, output_fd.values[x0_pos, :], bond_value.values[x0_pos, :], meta_data, "y")
+        xgrid_plot = (xgrid[0]>=-0.025) & (xgrid[0]<=0.025)
+        plot_bond_price_for_different(xgrid[xgrid_plot], output_fd.loc[xgrid_plot, y0_pos], bond_value.loc[xgrid_plot, y0_pos], meta_data, "x")
+        plot_bond_price_for_different(ygrid, output_fd.values[x0_pos, :], bond_value.values[x0_pos, :], meta_data, "u")
 
     processed_data = pd.concat(processed_data)
     processed_data.sort_values(by="t grid", inplace=True, ascending=True)
@@ -64,7 +66,7 @@ def process_bond_fd(input_file):
 
     #relative_diff = (output_fd - bond_value)/bond_value
     analytics_bond = extract_x0_result(bond_value.values, np.array(xgrid[0].values), ygrid[0].values)
-    fd_bond = extract_x0_result(output_fd.values, np.array(xgrid[0].values), ygrid)
+    fd_bond = extract_x0_result(output_fd.values, np.array(xgrid[0].values), ygrid[0].values)
 
     return fd_bond, analytics_bond, output_fd, bond_value, meta_data, xgrid, ygrid
 
@@ -73,26 +75,29 @@ def process_bond_fd(input_file):
 def plot_bond_price_for_different(grid, output_fd, bond_value, meta_data, grid_dir="x"):
 
     fig, ax1 = plt.subplots()
-    ax1.plot(grid, bond_value, "b--", label="Exact Formula")
-    ax1.plot(grid, output_fd, "rx", label="Finite Difference", markersize=2.5)
+    ax1.plot(grid, bond_value, "b--", label="Exact formula")
+    ax1.plot(grid, output_fd, "rx", label="Finite difference", markersize=2.5)
 
     error = (output_fd-bond_value)/bond_value * 10000
     ax1.set_xlabel(grid_dir + " value")
-    ax1.set_ylabel("{}Y Bond value".format(int(meta_data["maturity"])))
+    ax1.set_ylabel("{}Y bond value".format(int(meta_data["maturity"])))
 
     ax2 = ax1.twinx()
     ax2.plot(grid, error, "kd", label="Error", markersize=3)
 
-    ax2.set_ylabel("Error in Bond value (bps)")
+    ax2.set_ylabel("Error in bond value (bps)")
 
-    lgnd = ax1.legend(loc="upper center")
+    if (grid_dir=="x"):
+        lgnd = ax1.legend(loc="upper center")
+    else:
+        lgnd = ax1.legend(loc="lower center")
 
     lgnd.legendHandles[0]._legmarker.set_markersize(6)
     lgnd.legendHandles[1]._legmarker.set_markersize(6)
 
 
     ax2.legend(loc="upper right")
-    title = "Exact Bond formula vs Finite Difference solution with grid size t, x, y: {:d}, {:d}, {:d}".format(int(meta_data["t_grid_size"]),
+    title = "Exact bond formula vs Finite Difference solution with grid size t, x, u: {:d}, {:d}, {:d}".format(int(meta_data["t_grid_size"]),
                                                             int(meta_data["x_grid_size"]), int(meta_data["y_grid_size"]))
     ax1.set_title(title)
     file_name = "{}Y_exact_bond_value_vs_fd_{}_{}_{}_grid_{}".format(meta_data["maturity"], meta_data["t_grid_size"],
@@ -103,5 +108,5 @@ def plot_bond_price_for_different(grid, output_fd, bond_value, meta_data, grid_d
 
 
 #input_file = os.path.join(output_data_raw, "finite_difference", "2020_12_13", "bond_price_fd.hdf")
-input_dir = os.path.join(output_data_raw, "finite_difference", "bond", "2021_01_03-1")
+input_dir = os.path.join(output_data_raw, "finite_difference", "bond", "2021_02_13-13")
 process_all(input_dir)

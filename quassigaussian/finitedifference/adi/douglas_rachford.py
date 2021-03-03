@@ -5,7 +5,7 @@ from quassigaussian.finitedifference.matrixconstruction.coefficients import Coef
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 from quassigaussian.linearalgebra.solve_banded import solve_banded_array
 from quassigaussian.curves.libor import LiborCurve
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 
 class DouglasRachfordAdi():
 

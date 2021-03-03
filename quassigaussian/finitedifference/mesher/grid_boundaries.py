@@ -1,5 +1,5 @@
 import numpy as np
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility, LocalVolatility
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility, LocalVolatility
 import scipy.integrate as integrate
 
 def calculate_x_boundaries(y, kappa, maturity, volatility: LinearLocalVolatility):

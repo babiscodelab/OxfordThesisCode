@@ -1,9 +1,9 @@
 from quassigaussian.montecarlo.simulations import ProcessSimulatorTerminalMeasure
 from quassigaussian.montecarlo.monte_carlo_pricer import monte_carlo_pricer_terminal_measure
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
-from quassigaussian.products.instruments import Bond, Swap, Swaption, Annuity
-from quassigaussian.montecarlo.control_variate import apply_control_variate, apply_control_variate_annuity
-from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.instruments import Swap, Swaption
+from quassigaussian.montecarlo.control_variate import apply_control_variate_annuity
+from quassigaussian.products.pricer import SwapPricer, SwaptionPricer, find_implied_black_vola
 import pandas as pd
 import os
 import numpy as np

@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from quassigaussian.utils import get_random_number_generator
 from quassigaussian.products.pricer import AnnuityPricer, BondPricer
-from quassigaussian.products.instruments import Annuity, Bond
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.instruments import Bond
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 import pickle
 from quassigaussian.executor import Executor
 from quassigaussian.utils import calculate_G

@@ -1,4 +1,4 @@
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.instruments import Swap, Swaption
 from quassigaussian.curves.libor import LiborCurve
 import pandas as pd
@@ -7,7 +7,7 @@ from report.directories import output_data_raw, date_timestamp
 from quassigaussian.products.pricer import  SwapPricer
 from report.utils import get_nonexistant_path
 from quassigaussian.fastcalibration.discrete_averaging import DiscreteParameterAveraging
-from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
+from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY
 from quassigaussian.fastcalibration.parameter_averaging import lognormalimpliedvola
 
 
@@ -29,14 +29,15 @@ def calculate_swaption_prices():
     curve_rate = 0.06
     kappa_grid = [0.03]
 
-    vola_parameters = [(i, curve_rate, j) for i in [0.2, 0.45] for j in [0.2, 0.35]]
+    vola_parameters = [(i, curve_rate, j) for i in [0.7] for j in [0.4, 0.05]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
-    coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
+    #coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
 
     XYApproximator = PitergargDiscreteXY
 
-    swap_ls = [(20, 30)]
+    swap_ls = [(10, 11)]
+    coupon_grid = [0, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015]
     #vola_grid_df = vola_grid_df.iloc[9:10]
 
 
@@ -71,7 +72,7 @@ def calculate_swaption_prices():
                                                 "vola_beta": [vola_grid_row['beta']], "strike": [strike],
                                                 'moneyness': [strike-atm_swap_price], "curve_rate": [curve_rate],
                                                 "implied_black_vola": [black_implied_vola], 'integration_grid': [grid_size],
-                                                 "xy_approximation": [str(XYApproximator)]})
+                                                 "xy_approximation": [str(xy_calculator)]})
                     try:
                         all_output_data = pd.read_hdf(file_path, key="data")
                     except:

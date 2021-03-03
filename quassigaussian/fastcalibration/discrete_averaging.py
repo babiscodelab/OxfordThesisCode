@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.integrate as integrate
-from quassigaussian.products.pricer import SwapPricer, CapitalX, AnnuityPricer
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.pricer import SwapPricer
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from scipy.interpolate.interpolate import interp1d
 from quassigaussian.utils import midpoint
 

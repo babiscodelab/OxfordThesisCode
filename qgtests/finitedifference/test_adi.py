@@ -1,5 +1,5 @@
 from quassigaussian.finitedifference.adi.run_adi import AdiRunner
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility, BlackVolatilityModel
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility, BlackVolatilityModel
 from quassigaussian.products.instruments import Bond, Swap, Swaption
 from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
 from finitedifference.mesher.linear_mesher import extract_x0_result
@@ -8,7 +8,7 @@ from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 import numpy as np
 from scipy.interpolate import interp1d
 
-from qgtests.utis import get_mock_yield_curve_from_file, get_mock_yield_curve_const
+from qgtests.utis import get_mock_yield_curve_const
 
 def test_adi_bond():
 

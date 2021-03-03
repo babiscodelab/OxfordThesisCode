@@ -1,9 +1,9 @@
 from quassigaussian.montecarlo.simulations import ProcessSimulatorAnnuity
 
 import pandas as pd
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
-from quassigaussian.products.instruments import Bond, Swap, Swaption
-from quassigaussian.products.pricer import BondPricer, SwapPricer
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.instruments import Swap
+from quassigaussian.products.pricer import SwapPricer
 import os
 from qgtests.utis import get_mock_yield_curve_const
 from report.directories import output_data_raw, date_timestamp

@@ -1,7 +1,7 @@
 from quassigaussian.finitedifference.adi.run_adi import AdiRunner
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility, BlackVolatilityModel
-from quassigaussian.products.instruments import Bond, Swap, Swaption
-from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.instruments import Swap, Swaption
+from quassigaussian.products.pricer import SwapPricer, SwaptionPricer, find_implied_black_vola
 from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries, calculate_x_boundaries3
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d, extract_x0_result
 import pandas as pd
@@ -29,20 +29,32 @@ def adi_swaption_report():
     #finite_difference_parameter = [(400, 800, 60)]
 
     #finite_difference_parameter = [(800, 1000, 100)]
-    finite_difference_parameter = [(300, 400, 120)]
+    finite_difference_parameter = [(50, 100, 10), (100, 150, 20), (150, 200, 40), (200, 300, 60), (300, 400, 80)]
+    finite_difference_parameter = [(400, 600, 100)]
+    #finite_difference_parameter = [(600, 800, 120)]
+    #finite_difference_parameter = [(100, 150, 20), (150, 200, 40), (300, 400, 80), (400, 600, 100)]
+
+    #finite_difference_parameter = [ (400, 600, 100)]
+
+    finite_difference_parameter = [(100, 150, 20), (150, 200, 40), (300, 400, 80), (400, 600, 100)]
+    #finite_difference_parameter = [ (400, 600, 100)]
+    #finite_difference_parameter = [(150, 200, 40)]
 
     finite_difference_grid_df = pd.DataFrame(finite_difference_parameter, columns=["t_grid_size", "x_grid_size", "y_grid_size"])
     output_path = get_nonexistant_path(output_path)
-    vola_parameters = [(i, curve_rate, j) for i in [0.5] for j in [0.05]]
+    vola_parameters = [(i, curve_rate, j) for i in [0.4] for j in [0.2]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     #coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
 
     #swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
 
-    swap_ls = [(20, 30)]
+    #swap_ls = [(1,6), (5, 10), (10,20)]
+    swap_ls = [(1, 2)]
     coupon_grid = [0, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015]
+    #coupon_grid = [0]
 
+    #coupon_grid = [0]
     #swap_ls = [(5, 10)]
     #finite_difference_grid_df = finite_difference_grid_df[:-1]
     #vola_grid_df = vola_grid_df.iloc[9:10]
@@ -69,7 +81,7 @@ def adi_swaption_report():
                         t_max = expiry
 
                         x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=3)
-                        x_min, x_max = calculate_x_boundaries3(expiry, kappa, loca_vola, alpha=3)
+                        x_min, x_max = calculate_x_boundaries3(expiry, kappa, loca_vola, alpha=4)
                         y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=4)
 
                         mesher = Mesher2d()
@@ -97,6 +109,8 @@ def adi_swaption_report():
                         meta_data = pd.DataFrame(meta_data, index=[0])
                         swaption_t0.to_hdf(file_path, key="data", complevel=5)
                         meta_data.to_hdf(file_path, key="metadata", complevel=5)
+
+                        print(meta_data)
 
                         pd.DataFrame(mesher.xmesh).to_hdf(file_path, key='xmesh', complevel=5)
                         pd.DataFrame(mesher.ymesh).to_hdf(file_path, key='ymesh', complevel=5)

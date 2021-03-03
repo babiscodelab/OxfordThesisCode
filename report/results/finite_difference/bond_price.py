@@ -1,8 +1,8 @@
 from quassigaussian.finitedifference.adi.run_adi import AdiRunner
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility, BlackVolatilityModel
-from quassigaussian.products.instruments import Bond, Swap, Swaption
-from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
-from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.instruments import Bond
+from quassigaussian.products.pricer import BondPricer
+from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries, calculate_x_boundaries3
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 import pandas as pd
 import os
@@ -18,8 +18,8 @@ def adi_bond_report():
 
     output_path = os.path.join(output_data_raw_finite_difference, date_timestamp)
 
-    curve_rate = 0.02
-    maturity_grid = [10]
+    curve_rate = 0.01
+    maturity_grid = [30]
     kappa_grid = [0.03]
     theta = 1/2
 
@@ -28,15 +28,15 @@ def adi_bond_report():
     vola_parameters = [(i, curve_rate, j) for i in [0.05, 0.1, 0.2, 0.4] for j in [0.1, 0.3, 0.5, 0.7, 0.9]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
-    t_grid_size_grid = [6, 12, 18, 48, 64]
-    x_grid_size_grid = [50, 100, 200, 400, 800]
-    y_grid_size_grid = [10, 20, 40, 60, 80]
+    finite_difference_parameter = [(100, 150, 20), (300, 400, 80)]
 
-    finite_difference_grid_df = pd.DataFrame({"t_grid_size": t_grid_size_grid, "y_grid_size": y_grid_size_grid,
-                                           "x_grid_size": x_grid_size_grid})
+    #finite_difference_parameter = [(100, 150, 20)]
+
+    finite_difference_grid_df = pd.DataFrame(finite_difference_parameter, columns=["t_grid_size", "x_grid_size", "y_grid_size"])
+
     output_path = get_nonexistant_path(output_path)
 
-    vola_grid_df = vola_grid_df.loc[(vola_grid_df["lambda"]==0.2) & (vola_grid_df["beta"]==0.5)]
+    vola_grid_df = vola_grid_df.loc[(vola_grid_df["lambda"]==0.4) & (vola_grid_df["beta"]==0.35)]
 
     for maturity in maturity_grid:
         for kappa in kappa_grid:
@@ -48,13 +48,14 @@ def adi_bond_report():
 
                     x_grid_size = finite_difference_grid_row["x_grid_size"]
                     y_grid_size = finite_difference_grid_row["y_grid_size"]
-                    t_grid_size = finite_difference_grid_row["t_grid_size"]*maturity
+                    t_grid_size = finite_difference_grid_row["t_grid_size"]
 
                     t_min = 0
                     t_max = maturity
 
-                    x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=2.5)
-                    y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=2.5)
+                    x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=3)
+                    x_min, x_max = calculate_x_boundaries3(t_max, kappa, loca_vola, alpha=3)
+                    y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=4)
 
                     mesher = Mesher2d()
                     mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max,

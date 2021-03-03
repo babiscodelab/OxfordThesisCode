@@ -1,5 +1,5 @@
 from quassigaussian.curves.libor import LiborCurve
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 import numpy as np
 
 class CoefficientConstruction():

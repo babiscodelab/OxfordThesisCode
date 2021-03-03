@@ -1,11 +1,11 @@
 from quassigaussian.fastcalibration.approximation import DisplacedDiffusionParameterApproximator, PiterbargExpectationApproximator
 from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
-from quassigaussian.products.pricer import SwapPricer, BondPricer
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.products.pricer import SwapPricer
 from quassigaussian.products.instruments import Swap, Swaption
 from quassigaussian.curves.libor import LiborCurve
 import numpy as np
-from quassigaussian.fastcalibration.parameter_averaging import calculate_swaption_approx_price, w_s_wrapper, calculate_vola_skew, lognormalimpliedvola
+from quassigaussian.fastcalibration.parameter_averaging import calculate_vola_skew, lognormalimpliedvola
 from quassigaussian.fastcalibration.discrete_averaging import DiscreteParameterAveraging
 
 
