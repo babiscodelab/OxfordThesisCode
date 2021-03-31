@@ -23,15 +23,17 @@ def compare_approximated_values():
     kappa_grid = [0.03]
     initial_curve = get_mock_yield_curve_const(rate=curve_rate)
 
-    vola_parameters = [(i, curve_rate, j) for i in [0.20, 0.45] for j in [0.2, 0.35]]
+    #vola_parameters = [(i, curve_rate, j) for i in [0.20, 0.45] for j in [0.2, 0.35]]
+    vola_parameters = [(i, curve_rate, j) for i in [0.8] for j in [0.2]]
+
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     output_path = get_nonexistant_path(output_path)
 
-    number_samples = 2**15
-    number_steps = 1024
+    number_samples = 2**12
+    number_steps = 256
 
-    swap_ls = [(20, 30)]
+    swap_ls = [(20, 21)]
 
     #vola_grid_df = vola_grid_df[-1:]
 

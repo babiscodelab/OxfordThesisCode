@@ -94,6 +94,7 @@ def table_result(output_data, meta_data):
 
 if __name__ == "__main__":
     input_dir = os.path.join(output_data_raw, "approximation", "xy_approx", "results_examine/result")
+    input_dir = os.path.join(output_data_raw, "approximation", "xy_approx", "2021_03_23/result")
 
     process_all(input_dir)
     #plt.show()

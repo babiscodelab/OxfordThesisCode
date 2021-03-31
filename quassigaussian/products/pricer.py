@@ -217,6 +217,6 @@ def find_implied_black_vola(swaption_value: float, swaption: Swaption, swap_pric
         calculated_swaption_price = black_pricer.black76_price(swaption)
         return swaption_value - calculated_swaption_price
 
-    implied_vola = fsolve(find_root, x0=np.array([0.1]))
+    implied_vola = fsolve(find_root, x0=np.array([0.5]))
 
     return implied_vola

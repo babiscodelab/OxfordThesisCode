@@ -1,4 +1,4 @@
-from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries3, calculate_y_boundaries, calculate_x_moments
+from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries3, calculate_y_bar, calculate_x_moments
 from quassigaussian.parameters.model_parameters import QgModelParameters
 from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatilityTf
 from quassigaussian.dgm.dgm_parameters import DgmParameters
@@ -37,51 +37,62 @@ class QuasiGaussianDGM():
 
         #self.xmin, self.xmax = -0.2, 0.2
 
-        self.ymin, self.ymax = calculate_y_boundaries(swaption_expiry, self.kappa, self.volatility_func, alpha=2.5)
 
 
     def sampler2(self, nSim_interior, nSim_terminal):
         t_interior = tf.random.uniform(minval=0, maxval=self.swaption.expiry, shape=[nSim_interior, 1])
 
-        x_mean, x_std = calculate_x_moments(t_interior, self.kappa, self.volatility_func)
-        x_interior = tf.random.normal(mean=x_mean, stddev=x_std, shape=[nSim_interior, 1])
+        x_mean_interior, _ = calculate_x_moments(t_interior, self.kappa, self.volatility_func)
+        _, x_var = calculate_x_moments(self.swaption.expiry * tf.ones((nSim_interior, 1)), self.kappa, self.volatility_func)
+
+        #x_interior = tf.random.normal(mean=x_mean_interior, stddev=np.sqrt(x_var), shape=[nSim_interior, 1])
+        x_interior = tf.random.normal(mean=x_mean_interior, stddev=np.sqrt(x_var), shape=[nSim_interior, 1])
 
         t_terminal = self.swaption.expiry * tf.ones((nSim_terminal, 1))
-        x_mean, x_std = calculate_x_moments(t_terminal, self.kappa, self.volatility_func)
-        x_terminal = tf.random.normal(mean=x_mean, stddev=x_std, shape=[nSim_terminal, 1])
+        x_mean_terminal, x_var = calculate_x_moments(t_terminal, self.kappa, self.volatility_func)
+        x_terminal = tf.random.normal(mean=x_mean_terminal, stddev=np.sqrt(x_var), shape=[nSim_terminal, 1])
+
+        self.ymin = 0
+        self.ymax = calculate_y_bar(t_interior, self.volatility_func, self.kappa)
 
         y_interior = tf.random.uniform(minval=self.ymin, maxval=self.ymax, shape=[nSim_interior, self.qg_n_factors])
+
+        self.ymin = 0
+        self.ymax = calculate_y_bar(t_terminal, self.volatility_func, self.kappa)
         y_terminal = tf.random.uniform(minval=self.ymin, maxval=self.ymax, shape=[nSim_terminal, self.qg_n_factors])
+
+
+
         return t_interior, x_interior, y_interior, t_terminal, x_terminal, y_terminal
 
     # %% Sampling function - randomly sample time-space pairs
 
-    def sampler(self, x_low, x_high, y_low, y_high, nSim_interior, nSim_terminal):
-        ''' Sample time-space points from the function's domain; points are sampled
-            uniformly on the interior of the domain, at the initial/terminal time points
-            and along the spatial boundary at different time points.
-
-        Args:
-            nSim_interior: number of space points in the interior of the function's domain to sample
-            nSim_terminal: number of space points at terminal time to sample (terminal condition)
-        '''
-
-        # Sampler #1: domain interior
-        t_interior = tf.random.uniform(minval=0, maxval=self.swaption.expiry, shape=[nSim_interior, 1])
-        x_interior = tf.random.uniform(minval=x_low, maxval=x_high, shape=[nSim_interior, self.qg_n_factors])
-        y_interior = tf.random.uniform(minval=y_low, maxval=y_high, shape=[nSim_interior, self.qg_n_factors])
-
-        #y_interior = (y_interior + tf.transpose(y_interior, perm=(0, 2, 1)))/2
-        #y_interior = tf.reshape(y_interior, shape=(nSim_interior, int(self.qg_n_factors * (self.qg_n_factors + 1) / 2)))
-
-        # Sampler #2: initial/terminal condition
-        t_terminal = self.swaption.expiry * tf.ones((nSim_terminal, 1))
-        x_terminal = tf.random.uniform(minval=x_low, maxval=x_high, shape=[nSim_terminal, self.qg_n_factors])
-        y_terminal = tf.random.uniform(minval=y_low, maxval=y_high, shape=[nSim_terminal, self.qg_n_factors])
-        #y_terminal = (y_terminal + tf.transpose(y_terminal, perm=(0, 2, 1)))/2
-        #y_terminal = tf.reshape(y_terminal, shape=(nSim_interior, int(self.qg_n_factors * (self.qg_n_factors + 1) / 2)))
-
-        return t_interior, x_interior, y_interior, t_terminal, x_terminal, y_terminal
+    # def sampler(self, x_low, x_high, y_low, y_high, nSim_interior, nSim_terminal):
+    #     ''' Sample time-space points from the function's domain; points are sampled
+    #         uniformly on the interior of the domain, at the initial/terminal time points
+    #         and along the spatial boundary at different time points.
+    #
+    #     Args:
+    #         nSim_interior: number of space points in the interior of the function's domain to sample
+    #         nSim_terminal: number of space points at terminal time to sample (terminal condition)
+    #     '''
+    #
+    #     # Sampler #1: domain interior
+    #     t_interior = tf.random.uniform(minval=0, maxval=self.swaption.expiry, shape=[nSim_interior, 1])
+    #     x_interior = tf.random.uniform(minval=x_low, maxval=x_high, shape=[nSim_interior, self.qg_n_factors])
+    #     y_interior = tf.random.uniform(minval=y_low, maxval=y_high, shape=[nSim_interior, self.qg_n_factors])
+    #
+    #     #y_interior = (y_interior + tf.transpose(y_interior, perm=(0, 2, 1)))/2
+    #     #y_interior = tf.reshape(y_interior, shape=(nSim_interior, int(self.qg_n_factors * (self.qg_n_factors + 1) / 2)))
+    #
+    #     # Sampler #2: initial/terminal condition
+    #     t_terminal = self.swaption.expiry * tf.ones((nSim_terminal, 1))
+    #     x_terminal = tf.random.uniform(minval=x_low, maxval=x_high, shape=[nSim_terminal, self.qg_n_factors])
+    #     y_terminal = tf.random.uniform(minval=y_low, maxval=y_high, shape=[nSim_terminal, self.qg_n_factors])
+    #     #y_terminal = (y_terminal + tf.transpose(y_terminal, perm=(0, 2, 1)))/2
+    #     #y_terminal = tf.reshape(y_terminal, shape=(nSim_interior, int(self.qg_n_factors * (self.qg_n_factors + 1) / 2)))
+    #
+    #     return t_interior, x_interior, y_interior, t_terminal, x_terminal, y_terminal
 
     # %% Loss function for Quasi-Gaussian
 
@@ -111,22 +122,18 @@ class QuasiGaussianDGM():
         volatr = tf.transpose(vola, perm=[0, 1])
         short_rate = 0.06 + tf.reduce_sum(x_interior, axis=[1])
         short_rate = tf.expand_dims(short_rate, 1)
-        # loss_inter = V_t + tf.matmul(V_x, (tf.matmul(y_interior, tf.ones(shape=(1000, 1, 1))) - self.kappa*x_interior)) \
-        #           + 1/2 * tf.linalg.trace(V_xx * vola*volatr) \
-        #           + tf.linalg.trace((volatr * vola - self.kappa*y_interior - y_interior*self.kappa)*V_y) \
-        #           - short_rate
 
         loss_inter = V_t + V_x * (y_interior - self.kappa*x_interior) + 1.0/2 * V_xx*vola*volatr + \
                             (volatr * vola - 2*self.kappa*y_interior)*V_y - short_rate*V
 
         loss_inter = tf.reduce_mean(tf.square(loss_inter))
+
         target_payoff = 1
 
         fitted_payoff = model((t_terminal, x_terminal, y_terminal))
-        loss_terminal = 100*tf.reduce_mean(tf.square(target_payoff-fitted_payoff))
+        loss_terminal = 10000*tf.reduce_mean(tf.square(target_payoff-fitted_payoff))
 
         L = loss_inter + loss_terminal
-
         return L, loss_inter, loss_terminal
 
 
@@ -151,7 +158,7 @@ class QuasiGaussianDGM():
 
             for i in range(1):
 
-                t_interior, x_interior, y_interior, t_terminal, x_terminal, y_terminal = self.sampler2(2000, 400)
+                t_interior, x_interior, y_interior, t_terminal, x_terminal, y_terminal = self.sampler2(1000, 100)
 
                 # t_interior, x_interior, y_interior, t_terminal, x_terminal, y_terminal = self.sampler(self.xmin, self.xmax,
                 #                                                                                       self.ymin, self.ymax, 1000, 200)
@@ -169,11 +176,11 @@ class QuasiGaussianDGM():
 
                 print(loss_value, l_int, l_bound)
 
-        if (epoch % 1000==0):
-            save_model(model, self.output_path, epoch)
+            if (epoch % 1000==0):
+                save_model(model, self.output_path, epoch)
 
 
-            print("new sample")
+        #print("new sample")
         pass
         save_model(model, self.output_path, None)
 
@@ -220,11 +227,11 @@ if __name__ == "__main__":
     dgm_param = DgmParameters(num_layers=3)
 
     number_factors = 1
-    local_volatility = LinearLocalVolatilityTf.from_const(number_factors, 15, 0.4, 0.06, 0.2)
-    kappa = 0.3
+    local_volatility = LinearLocalVolatilityTf.from_const(number_factors, 15, 0.4, 0.06, 0)
+    kappa = 0.03
     qg_model_parameters = QgModelParameters(kappa, local_volatility, number_factors)
 
-    swaption_expiry = 10
+    swaption_expiry = 1
     swap = Swap(swaption_expiry, 2, 0.5)
 
     initial_curve = get_mock_yield_curve_const(rate=0.06)

@@ -7,7 +7,7 @@ from report.directories import output_data_raw, date_timestamp
 from quassigaussian.products.pricer import  SwapPricer
 from report.utils import get_nonexistant_path
 from quassigaussian.fastcalibration.discrete_averaging import DiscreteParameterAveraging
-from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY
+from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
 from quassigaussian.fastcalibration.parameter_averaging import lognormalimpliedvola
 
 
@@ -23,20 +23,22 @@ def calculate_swaption_prices():
 
     grid_size = 2**12 + 1
     swap_freq = 0.5
-
-    initial_curve = LiborCurve.from_constant_rate(0.06)
-
     curve_rate = 0.06
+
+    initial_curve = LiborCurve.from_constant_rate(curve_rate)
+
     kappa_grid = [0.03]
 
-    vola_parameters = [(i, curve_rate, j) for i in [0.7] for j in [0.4, 0.05]]
+    vola_parameters = [(i, curve_rate, j) for i in [0.6, 0.8] for j in [0.05, 0.2]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
+    vola_grid_df = vola_grid_df.iloc[[0, 3]]
 
     #coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
 
     XYApproximator = PitergargDiscreteXY
+    XYApproximator = RungeKuttaApproxXY
 
-    swap_ls = [(10, 11)]
+    swap_ls = [(20, 21)]
     coupon_grid = [0, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015]
     #vola_grid_df = vola_grid_df.iloc[9:10]
 
@@ -55,6 +57,7 @@ def calculate_swaption_prices():
 
                 atm_swap_price = swap_pricer.price(swap, 0, 0, 0)
                 strike_grid = [atm_swap_price + coupon for coupon in coupon_grid]
+                #strike_grid = [0.01, 0.015, 0.02, 0.025, 0.03]
 
                 xy_calculator = XYApproximator(grid_size, swap_pricer, sigma_r, swap)
                 integration_approx = DiscreteParameterAveraging(grid_size, swap_pricer, sigma_r, swap, xy_calculator)

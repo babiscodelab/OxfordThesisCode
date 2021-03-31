@@ -40,22 +40,30 @@ def calculate_x_boundaries2(maturity, volatility: LocalVolatility, alpha=5):
 
     return x_min, x_max
 
-def calculate_y_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5):
 
-    def exp_y_integral(u):
+def calculate_u_moments(maturity, kappa, volatility: LocalVolatility):
+
+    def exp_u_integral(u):
         exp_x = np.power(volatility.calculate_vola(u,0,0), 2)/(2*np.power(kappa,2)) * (1-2*np.exp(-kappa*u) + np.exp(-2*kappa*u))
         return 2*np.exp(-2*kappa*(maturity-u)) * exp_x * volatility.calculate_vola(u, 0, 0) * volatility.d_vola_dx(u, 0, 0)
 
-    def var_y_integral(u):
+    def var_u_integral(u):
         variance_x = np.power(volatility.calculate_vola(u, 0, 0), 2) / (2 * kappa) * (1 - np.exp(-2 * kappa * u))
         return 4*np.power(volatility.d_vola_dx(u, 0, 0), 2) * np.power(volatility.calculate_vola(u, 0, 0), 2) * np.exp(-4*kappa*(maturity-u)) * variance_x
 
-    exp_y = integrate.quad(exp_y_integral, 0, maturity)[0]
-    var_y = integrate.quad(var_y_integral, 0, maturity)[0]
+    exp_u = integrate.quad(exp_u_integral, 0, maturity)[0]
+    var_u = integrate.quad(var_u_integral, 0, maturity)[0]
+
+    return exp_u, var_u
+
+
+def calculate_y_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5):
+
+    exp_u, var_u = calculate_u_moments(maturity, kappa, volatility)
 
     # y cannot be negative
-    y_min =  -alpha * np.sqrt(var_y)
-    y_max =  +alpha * np.sqrt(var_y)
+    y_min =  -alpha * np.sqrt(var_u)
+    y_max =  +alpha * np.sqrt(var_u)
 
     return y_min, y_max
 

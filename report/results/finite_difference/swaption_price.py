@@ -38,11 +38,12 @@ def adi_swaption_report():
 
     finite_difference_parameter = [(100, 150, 20), (150, 200, 40), (300, 400, 80), (400, 600, 100)]
     #finite_difference_parameter = [ (400, 600, 100)]
+    finite_difference_parameter = [(300, 400, 80)]
     #finite_difference_parameter = [(150, 200, 40)]
 
     finite_difference_grid_df = pd.DataFrame(finite_difference_parameter, columns=["t_grid_size", "x_grid_size", "y_grid_size"])
     output_path = get_nonexistant_path(output_path)
-    vola_parameters = [(i, curve_rate, j) for i in [0.4] for j in [0.2]]
+    vola_parameters = [(i, curve_rate, j) for i in [0.6, 0.8] for j in [0.05, 0.2]]
     vola_grid_df = pd.DataFrame(vola_parameters, columns=["lambda", "alpha", "beta"])
 
     #coupon_grid = [0, +0.0025, -0.0025, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015, 0.02, -0.02, 0.025, -0.025]
@@ -50,14 +51,16 @@ def adi_swaption_report():
     #swap_ls = [(1, 6), (5, 10), (10, 20), (20, 30), (25, 30)]
 
     #swap_ls = [(1,6), (5, 10), (10,20)]
-    swap_ls = [(1, 2)]
+
+    swap_ls = [(20, 21)]
     coupon_grid = [0, +0.005, -0.005, +0.01, -0.01, 0.015, -0.015]
     #coupon_grid = [0]
 
     #coupon_grid = [0]
     #swap_ls = [(5, 10)]
     #finite_difference_grid_df = finite_difference_grid_df[:-1]
-    #vola_grid_df = vola_grid_df.iloc[9:10]
+
+    vola_grid_df = vola_grid_df.iloc[[0, 3]]
 
     for swap_exp_mat in swap_ls:
         expiry, maturity = swap_exp_mat
@@ -67,6 +70,8 @@ def adi_swaption_report():
             swap = Swap(expiry, maturity, 0.5)
             atm_swap_price = swap_pricer.price(swap, 0, 0, 0)
             strike_grid = [atm_swap_price+coupon for coupon in coupon_grid]
+            #strike_grid = [0.01, 0.015, 0.02, 0.025, 0.03]
+
             for strike in strike_grid:
                 swaption = Swaption(expiry, strike, swap)
                 for index, vola_grid_row in vola_grid_df.iterrows():
