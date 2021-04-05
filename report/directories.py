@@ -17,6 +17,9 @@ output_tables_mc = os.path.join(output_tables, "monte_carlo")
 output_plots_approx_solution = os.path.join(output_plots, "approximate_solution")
 output_tables_approx_solution = os.path.join(output_tables, "approximate_solution")
 
+output_dgm_model = os.path.join(output_data, "dgm_model")
+
+
 report_path = os.path.join(os.path.realpath(__file__), "..")
 
 

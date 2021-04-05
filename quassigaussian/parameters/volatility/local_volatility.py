@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from quassigaussian.products.instruments import Swap
 from quassigaussian.products.pricer import SwapPricer
+import tensorflow as tf
 
 class LocalVolatility(ABC):
 
@@ -52,6 +53,34 @@ class LinearLocalVolatility():
         b_t = lambda t: beta_const*swap_pricer.dsdx(swap, 0, 0, t)
         lambda_t = interp1d(x, lambda_const * y, kind="previous")
         #b_t = interp1d(x, beta_const * y, kind='previous')
+
+        return cls(lambda_t, alpha_t, b_t)
+
+
+
+class LinearLocalVolatilityTf():
+
+    def __init__(self, lambda_t: callable, alpha_t: callable, b_t: callable):
+        self.lambda_t = lambda_t
+        self.alpha_t = alpha_t
+        self.b_t = b_t
+
+    def calculate_vola(self, t: float, x: float, y=0):
+
+        return self.lambda_t * (self.alpha_t + self.b_t*x)
+
+    def d_vola_dx(self, t, x, y=0):
+        return self.lambda_t * self.alpha_t
+
+    @classmethod
+    def from_const(cls, dimension, maturity, lambda_const, alpha_const, b_const):
+
+        x = np.arange(0, maturity+1)
+        y = np.ones(maturity+1)
+
+        lambda_t = tf.ones(shape=(dimension, dimension))*lambda_const
+        alpha_t = tf.ones(shape=(dimension, dimension))*alpha_const
+        b_t = tf.ones(shape=(dimension, dimension))*b_const
 
         return cls(lambda_t, alpha_t, b_t)
 

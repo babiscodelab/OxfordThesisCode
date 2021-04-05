@@ -2,7 +2,7 @@ import numpy as np
 from qgtests.utis import get_mock_yield_curve_const
 # Simulate paths and calculate bond price
 from quassigaussian.montecarlo.simulations import ProcessSimulator
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility, BlackVolatilityModel
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.pricer import AnnuityPricer, BondPricer, SwapPricer, SwaptionPricer
 from quassigaussian.products.instruments import Annuity, Swap, Swaption
 from scipy.interpolate import interp1d

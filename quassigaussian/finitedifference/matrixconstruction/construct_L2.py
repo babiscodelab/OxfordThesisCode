@@ -10,22 +10,22 @@ class ConstructL2():
 
     def __init__(self, theta, mesher: Mesher2d):
 
-        self.y_size_full = len(mesher.ygrid)
-        self.delta_p = mesher.delta_py
-        self.delta_m = mesher.delta_my
+        self.u_size_full = len(mesher.ugrid)
+        self.delta_p = mesher.delta_pu
+        self.delta_m = mesher.delta_mu
 
         self.delta_t = mesher.delta_t
         self.theta = theta
 
-    def constructL2_rhs(self, r, mu_y):
+    def constructL2_rhs(self, r, mu_u):
 
-        ident_muy = ident(mu_y)
-        tmp = (1-ident_muy)/self.delta_m
-        c_j = mu_y * (tmp - ident_muy/self.delta_p) -1/2 * r
-        l_j = -mu_y * tmp
-        u_j = mu_y * ident_muy/self.delta_p
+        ident_mu = ident(mu_u)
+        tmp = (1-ident_mu)/self.delta_m
+        c_j = mu_u * (tmp - ident_mu / self.delta_p) - 1 / 2 * r
+        l_j = -mu_u * tmp
+        u_j = mu_u * ident_mu / self.delta_p
 
-        sparse_m = scipy.sparse.diags([l_j[1:], c_j[1:], u_j[1:-1]], offsets=[0, 1, 2], shape=(self.y_size_full-2, self.y_size_full))
+        sparse_m = scipy.sparse.diags([l_j[1:], c_j[1:], u_j[1:-1]], offsets=[0, 1, 2], shape=(self.u_size_full - 2, self.u_size_full))
         return sparse_m
 
 
@@ -34,13 +34,13 @@ class ConstructL2():
         v_new[-1] = 2 * v_new[-2] - v_new[-3]
         pass
 
-    def constructL2(self, r, mu_y):
+    def constructL2(self, r, mu_u):
 
-        ident_muy = ident(mu_y)
-        tmp = (1-ident_muy)/self.delta_m
-        c_j = mu_y * (tmp - ident_muy/self.delta_p) -1/2 * r
-        l_j = -mu_y * tmp
-        u_j = mu_y * ident_muy/self.delta_p
+        ident_mu = ident(mu_u)
+        tmp = (1-ident_mu)/self.delta_m
+        c_j = mu_u * (tmp - ident_mu / self.delta_p) - 1 / 2 * r
+        l_j = -mu_u * tmp
+        u_j = mu_u * ident_mu / self.delta_p
 
         c_j = c_j[1:-1]
         l_j = l_j[1:-1]
@@ -56,7 +56,7 @@ class ConstructL2():
         l_j = - self.theta * self.delta_t * l_j
         u_j = - self.theta * self.delta_t * u_j
 
-        l2_lhs = scipy.sparse.diags([l_j[1:], c_j, u_j[:-1]], offsets=[-1, 0, 1], shape=(self.y_size_full-2, self.y_size_full-2))
+        l2_lhs = scipy.sparse.diags([l_j[1:], c_j, u_j[:-1]], offsets=[-1, 0, 1], shape=(self.u_size_full - 2, self.u_size_full - 2))
         return l2_lhs
 
 

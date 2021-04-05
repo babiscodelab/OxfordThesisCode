@@ -135,19 +135,19 @@ class ConstructL1A():
         li[-1] = li[-1] + bI_m1*ui[-1]
         return li, ci, ui
 
-if __name__ == '__main__':
-
-    theta = 0.5
-    r = 0.05
-    delta_t = 0.1
-
-    eta_sq = 0.2
-    mu_x = 0.7
-    from quassigaussian.finitedifference.mesher import create_mesher_2d, calculate_delta
-
-    xgrid, ygrid, xv, yv = create_mesher_2d(0, 100, 10, 0, 100, 5)
-    delta_p, delta_m = calculate_delta(xgrid)
-
-    construct_l1 = ConstructL1A(theta, delta_t, delta_p, delta_m, len(delta_p))
-    l1_lhs, l1_rhs = construct_l1.construct_l1_operator(eta_sq, mu_x, r)
-    print("pause")
+# if __name__ == '__main__':
+#
+#     theta = 0.5
+#     r = 0.05
+#     delta_t = 0.1
+#
+#     eta_sq = 0.2
+#     mu_x = 0.7
+#     from quassigaussian.finitedifference.mesher import create_mesher_2d, calculate_delta
+#
+#     xgrid, ygrid, xv, yv = create_mesher_2d(0, 100, 10, 0, 100, 5)
+#     delta_p, delta_m = calculate_delta(xgrid)
+#
+#     construct_l1 = ConstructL1A(theta, delta_t, delta_p, delta_m, len(delta_p))
+#     l1_lhs, l1_rhs = construct_l1.construct_l1_operator(eta_sq, mu_x, r)
+#     print("pause")

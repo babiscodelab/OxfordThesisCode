@@ -87,16 +87,19 @@ def process_mc_dataframe(df):
 
 mc_swaption_dir = os.path.join(output_data_raw, "monte_carlo", "swaption", "2021_01_03")
 
-#mc_swaption_dir = os.path.join(output_data_raw, "monte_carlo", "swaption", "2021_01_27-compare-error")
+mc_swaption_dir = os.path.join(output_data_raw, "monte_carlo", "swaption", "2021_01_27-annuity_cv-res")
 mc_swaption = read_results(mc_swaption_dir)
-
+mc_swaption = mc_swaption.loc[mc_swaption["random_number_generator_type"]=="normal"]
 fd_swaption_dir = os.path.join(output_data_raw, "finite_difference", "swaption", "2021_01_26")
 fd_swaption = read_results(fd_swaption_dir, key="metadata")
+
+fd_swaption = read_results(r"C:\Users\d80084\Google Drive\01oxford\7 Thesis\code\quasigaussian\report\data\output_data\raw\finite_difference\swaption\2021_02_14-14" ,key="metadata").sort_values(["maturity", "moneyness", "vola_lambda", "vola_beta",  "x_grid_size"])
+fd_swaption = fd_swaption.loc[fd_swaption["x_grid_size"]==200]
 
 fd_swaption = process_fd_dataframe(fd_swaption)
 mc_swaption = process_mc_dataframe(mc_swaption)
 
 swaption_cv_table = format_mc_swaption_table(mc_swaption, fd_swaption)
-#swaption_cv_table.to_csv(os.path.join(output_tables_mc, "control_variate.csv"), index=False)
+swaption_cv_table.to_csv(os.path.join(output_tables_mc, "control_variate.csv"), index=False)
 print("paus")
 

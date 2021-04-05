@@ -1,12 +1,9 @@
 import scipy.integrate as integrate
 import math
-from quassigaussian.products.pricer import SwapPricer, CapitalX, AnnuityPricer
-from quassigaussian.products.instruments import Swap
+from quassigaussian.products.pricer import SwapPricer, CapitalX
 from scipy.optimize import fsolve
 import numpy as np
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
-from scipy.interpolate.interpolate import interp1d
-from scipy.integrate import solve_ivp
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 
 
 class PiterbargExpectationApproximator():

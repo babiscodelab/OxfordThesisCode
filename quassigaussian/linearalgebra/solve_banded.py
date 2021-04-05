@@ -3,7 +3,7 @@ from scipy.linalg import solve_banded
 
 def solve_banded_array(sparse_diag, v):
     """
-    solves ax = b
+    solves ax = b using Thomas Algorithm
     :param a:
     :param b:
     :return:

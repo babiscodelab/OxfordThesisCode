@@ -1,4 +1,4 @@
-from quassigaussian.fastcalibration.parameter_averaging import calculate_lambda_s_bar, w_s_wrapper, calculate_b_s_bar
+from quassigaussian.fastswaptionsolver.parameter_averaging import calculate_lambda_s_bar, w_s_wrapper, calculate_b_s_bar
 from scipy.interpolate import interp1d
 import numpy as np
 

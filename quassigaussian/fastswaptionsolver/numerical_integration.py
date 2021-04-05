@@ -1,7 +1,7 @@
 import numpy as np
 from quassigaussian.products.pricer import SwapPricer, CapitalX
-from quassigaussian.fastcalibration.approximation import PiterbargExpectationApproximator
-from quassigaussian.volatility.local_volatility import LinearLocalVolatility
+from quassigaussian.fastswaptionsolver.approximation import PiterbargExpectationApproximator
+from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from scipy.integrate import solve_ivp
 from abc import ABC
 import abc
@@ -49,6 +49,10 @@ class PitergargDiscreteXY(XYApproximators):
         return xbar, y_bar
 
 
+    def __str__(self):
+        return "piterbarg"
+
+
 
 class RungeKuttaApproxXY(XYApproximators):
 
@@ -77,3 +81,6 @@ class RungeKuttaApproxXY(XYApproximators):
                 *(np.square(self.sigma_r.calculate_vola(t, x)))
         rhs_y = np.square(self.sigma_r.calculate_vola(t, x)) - 2*self.kappa*y
         return np.array([rhs_x, rhs_y])
+
+    def __str__(self):
+        return "rungekutta"
