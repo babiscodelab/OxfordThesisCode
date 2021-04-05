@@ -20,7 +20,7 @@ from quassigaussian.finitedifference.adi.run_adi import AdiRunner
 from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.instruments import Swap, Swaption
 from quassigaussian.products.pricer import SwapPricer, SwaptionPricer, find_implied_black_vola
-from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries, calculate_x_boundaries3
+from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_u_boundaries, calculate_x_boundaries3
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d, extract_x0_result
 import pandas as pd
 import os
@@ -117,7 +117,7 @@ def price_fd(swaption_pricer, loca_vola, swaption):
     kappa = swaption_pricer.swap_pricer.kappa
 
     x_min, x_max = calculate_x_boundaries3(expiry, kappa, loca_vola, alpha=4)
-    y_min, y_max = calculate_y_boundaries(expiry, kappa, loca_vola, alpha=4)
+    y_min, y_max = calculate_u_boundaries(expiry, kappa, loca_vola, alpha=4)
 
     mesher = Mesher2d()
     mesher.create_mesher_2d(0, expiry, 200, x_min, x_max, 400, y_min, y_max,
@@ -127,7 +127,7 @@ def price_fd(swaption_pricer, loca_vola, swaption):
 
     swaption_t0 = pd.DataFrame(adi_runner.run_adi(swaption, swaption_pricer))
 
-    swaption_t0_x0_y0 = extract_x0_result(swaption_t0.values, mesher.xgrid, mesher.ygrid)
+    swaption_t0_x0_y0 = extract_x0_result(swaption_t0.values, mesher.xgrid, mesher.ugrid)
     implied_black_vola = find_implied_black_vola(swaption_t0_x0_y0, swaption, swaption_pricer.swap_pricer, swaption_pricer.swap_pricer.bond_pricer)
 
     return implied_black_vola

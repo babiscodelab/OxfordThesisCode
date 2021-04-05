@@ -31,6 +31,8 @@ def process_all(file_directory):
         y0_pos = np.where(ygrid == 0)[0][0]
 
         xgrid_plot = (xgrid[0]>=-0.025) & (xgrid[0]<=0.025)
+
+        # Need to add y_bar(0), but y_bar(0)=0.
         plot_bond_price_for_different(xgrid[xgrid_plot], output_fd.loc[xgrid_plot, y0_pos], bond_value.loc[xgrid_plot, y0_pos], meta_data, "x")
         plot_bond_price_for_different(ygrid, output_fd.values[x0_pos, :], bond_value.values[x0_pos, :], meta_data, "u")
 

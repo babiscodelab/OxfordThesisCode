@@ -6,7 +6,7 @@ class Mesher2d():
     def __init__(self):
         pass
 
-    def create_mesher_2d(self, tmin, tmax, tsize, xmin, xmax, xsize, ymin, ymax, ysize):
+    def create_mesher_2d(self, tmin, tmax, tsize, xmin, xmax, xsize, umin, umax, usize):
         """
         Calculate the grid.
         xgrid[0], ygrid[0]: lower boundary
@@ -30,10 +30,10 @@ class Mesher2d():
         xgrid1 = np.delete(xgrid1, -1)
         self.xgrid = np.concatenate([xgrid1, xgrid2])
 
-        ygrid1 = np.linspace(ymin, 0, int(ysize/2))
-        ygrid2 = np.linspace(0, ymax, int(ysize/2))
-        ygrid1 = np.delete(ygrid1, -1)
-        self.ygrid = np.concatenate([ygrid1, ygrid2])
+        ugrid1 = np.linspace(umin, 0, int(usize / 2))
+        ugrid2 = np.linspace(0, umax, int(usize / 2))
+        ugrid1 = np.delete(ugrid1, -1)
+        self.ugrid = np.concatenate([ugrid1, ugrid2])
 
         # self.xgrid = np.linspace(xmin, xmax, xsize-1)
         # self.xgrid = np.append(self.xgrid, [0])
@@ -44,11 +44,11 @@ class Mesher2d():
         #self.ygrid = np.linspace(ymin, ymax, ysize)
 
 
-        self.xmesh, self.ymesh = np.meshgrid(self.xgrid, self.ygrid, indexing='ij')
+        self.xmesh, self.umesh = np.meshgrid(self.xgrid, self.ugrid, indexing='ij')
 
         self.delta_px, self.delta_mx = calculate_delta(self.xgrid)
-        self.delta_py, self.delta_my = calculate_delta(self.ygrid)
-        self.ydim = len(self.ygrid)
+        self.delta_pu, self.delta_mu = calculate_delta(self.ugrid)
+        self.udim = len(self.ugrid)
 
 
 def calculate_delta(gridv):

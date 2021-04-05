@@ -2,7 +2,7 @@ from quassigaussian.finitedifference.adi.run_adi import AdiRunner
 from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.instruments import Bond
 from quassigaussian.products.pricer import BondPricer
-from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries, calculate_x_boundaries3
+from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_u_boundaries, calculate_x_boundaries3
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 import pandas as pd
 import os
@@ -55,10 +55,10 @@ def adi_bond_report():
 
                     x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=3)
                     x_min, x_max = calculate_x_boundaries3(t_max, kappa, loca_vola, alpha=3)
-                    y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=4)
+                    u_min, u_max = calculate_u_boundaries(t_max, kappa, loca_vola, alpha=4)
 
                     mesher = Mesher2d()
-                    mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max,
+                    mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, u_min, u_max,
                                             y_grid_size)
 
                     adi_runner = AdiRunner(theta, kappa, initial_curve, loca_vola, mesher)
@@ -77,10 +77,10 @@ def adi_bond_report():
                     meta_data.to_hdf(file_path, key="metadata", complevel=5)
 
                     pd.DataFrame(mesher.xmesh).to_hdf(file_path, key='xmesh', complevel=5)
-                    pd.DataFrame(mesher.ymesh).to_hdf(file_path, key='ymesh', complevel=5)
+                    pd.DataFrame(mesher.umesh).to_hdf(file_path, key='ymesh', complevel=5)
 
                     pd.DataFrame(mesher.xgrid).to_hdf(file_path, key='xgrid', complevel=5)
-                    pd.DataFrame(mesher.ygrid).to_hdf(file_path, key='ygrid', complevel=5)
+                    pd.DataFrame(mesher.ugrid).to_hdf(file_path, key='ygrid', complevel=5)
 
 if __name__ == "__main__":
     adi_bond_report()

@@ -3,7 +3,7 @@ from quassigaussian.parameters.volatility.local_volatility import LinearLocalVol
 from quassigaussian.products.instruments import Bond, Swap, Swaption
 from quassigaussian.products.pricer import BondPricer, SwapPricer, SwaptionPricer, find_implied_black_vola
 from finitedifference.mesher.linear_mesher import extract_x0_result
-from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries
+from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_u_boundaries
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d
 import numpy as np
 from scipy.interpolate import interp1d
@@ -30,7 +30,7 @@ def test_adi_bond():
     y_grid_size = 20
 
     x_min, x_max = calculate_x_boundaries2(t_max, linear_local_volatility, alpha=2.5)
-    y_min, y_max = calculate_y_boundaries(t_max, kappa, linear_local_volatility, alpha=2.5)
+    y_min, y_max = calculate_u_boundaries(t_max, kappa, linear_local_volatility, alpha=2.5)
 
     mesher = Mesher2d()
     mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max, y_grid_size)
@@ -41,7 +41,7 @@ def test_adi_bond():
     bond_pricer = BondPricer(initial_curve, kappa)
 
     bond_t0 = adi_runner.run_adi(bond, bond_pricer)
-    bond_xyt0 = extract_x0_result(bond_t0, adi_runner.mesher.xgrid, adi_runner.mesher.ygrid)
+    bond_xyt0 = extract_x0_result(bond_t0, adi_runner.mesher.xgrid, adi_runner.mesher.ugrid)
 
     actual = bond_pricer.price(bond, 0, 0, 0)
 
@@ -108,7 +108,7 @@ def test_adi_bond2():
     y_grid_size = 40
 
     x_min, x_max = calculate_x_boundaries2(t_max, local_volatility, alpha=2)
-    y_min, y_max = calculate_y_boundaries(t_max, kappa, local_volatility, alpha=2)
+    y_min, y_max = calculate_u_boundaries(t_max, kappa, local_volatility, alpha=2)
 
     x_min, x_max = -0.05, +0.05
 
@@ -160,7 +160,7 @@ def test_adi_swaption():
     y_grid_size = 20
 
     x_min, x_max = calculate_x_boundaries2(t_max, local_volatility, alpha=3)
-    y_min, y_max = calculate_y_boundaries(t_max, kappa, local_volatility, alpha=3)
+    y_min, y_max = calculate_u_boundaries(t_max, kappa, local_volatility, alpha=3)
 
     mesher = Mesher2d()
     mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max, y_grid_size)
@@ -170,7 +170,7 @@ def test_adi_swaption():
 
     swaption_value0 = adi_runner.run_adi(swaption, swaption_pricer)
 
-    x0 = extract_x0_result(swaption_value0, mesher.xgrid, mesher.ygrid)
+    x0 = extract_x0_result(swaption_value0, mesher.xgrid, mesher.ugrid)
     print("Swaption value at 0: ", x0)
 
 
@@ -204,7 +204,7 @@ def test_adi_swaption2():
     y_grid_size = 20
 
     x_min, x_max = calculate_x_boundaries2(t_max, local_volatility, alpha=3)
-    y_min, y_max = calculate_y_boundaries(t_max, kappa, local_volatility, alpha=3)
+    y_min, y_max = calculate_u_boundaries(t_max, kappa, local_volatility, alpha=3)
 
     mesher = Mesher2d()
     mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max, y_grid_size)
@@ -214,7 +214,7 @@ def test_adi_swaption2():
 
     swaption_value0 = adi_runner.run_adi(swaption, swaption_pricer)
 
-    x0 = extract_x0_result(swaption_value0, mesher.xgrid, mesher.ygrid)
+    x0 = extract_x0_result(swaption_value0, mesher.xgrid, mesher.ugrid)
 
     implied_vola = find_implied_black_vola(x0, swaption, swap_pricer, swap_pricer.bond_pricer)
 

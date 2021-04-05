@@ -57,15 +57,15 @@ def calculate_u_moments(maturity, kappa, volatility: LocalVolatility):
     return exp_u, var_u
 
 
-def calculate_y_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5):
+def calculate_u_boundaries(maturity, kappa, volatility: LocalVolatility, alpha=5):
 
     exp_u, var_u = calculate_u_moments(maturity, kappa, volatility)
 
     # y cannot be negative
-    y_min =  -alpha * np.sqrt(var_u)
-    y_max =  +alpha * np.sqrt(var_u)
+    u_min =  -alpha * np.sqrt(var_u)
+    u_max =  +alpha * np.sqrt(var_u)
 
-    return y_min, y_max
+    return u_min, u_max
 
 
 if __name__ == "__main__":

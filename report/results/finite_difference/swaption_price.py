@@ -2,7 +2,7 @@ from quassigaussian.finitedifference.adi.run_adi import AdiRunner
 from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from quassigaussian.products.instruments import Swap, Swaption
 from quassigaussian.products.pricer import SwapPricer, SwaptionPricer, find_implied_black_vola
-from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_y_boundaries, calculate_x_boundaries3
+from quassigaussian.finitedifference.mesher.grid_boundaries import calculate_x_boundaries2, calculate_u_boundaries, calculate_x_boundaries3
 from quassigaussian.finitedifference.mesher.linear_mesher import Mesher2d, extract_x0_result
 import pandas as pd
 import os
@@ -87,7 +87,7 @@ def adi_swaption_report():
 
                         x_min, x_max = calculate_x_boundaries2(t_max, loca_vola, alpha=3)
                         x_min, x_max = calculate_x_boundaries3(expiry, kappa, loca_vola, alpha=4)
-                        y_min, y_max = calculate_y_boundaries(t_max, kappa, loca_vola, alpha=4)
+                        y_min, y_max = calculate_u_boundaries(t_max, kappa, loca_vola, alpha=4)
 
                         mesher = Mesher2d()
                         mesher.create_mesher_2d(t_min, t_max, t_grid_size, x_min, x_max, x_grid_size, y_min, y_max,
@@ -100,7 +100,7 @@ def adi_swaption_report():
                         output_file = os.path.join(output_path, "swaption_price_fd.hdf")
                         file_path = get_nonexistant_path(output_file)
 
-                        swaption_t0_x0_y0 = extract_x0_result(swaption_t0.values, mesher.xgrid, mesher.ygrid)
+                        swaption_t0_x0_y0 = extract_x0_result(swaption_t0.values, mesher.xgrid, mesher.ugrid)
                         implied_black_vola = find_implied_black_vola(swaption_t0_x0_y0, swaption, swap_pricer, swap_pricer.bond_pricer)
 
                         meta_data = {"expiry": expiry, "maturity": maturity, "strike": strike,
@@ -118,10 +118,10 @@ def adi_swaption_report():
                         print(meta_data)
 
                         pd.DataFrame(mesher.xmesh).to_hdf(file_path, key='xmesh', complevel=5)
-                        pd.DataFrame(mesher.ymesh).to_hdf(file_path, key='ymesh', complevel=5)
+                        pd.DataFrame(mesher.umesh).to_hdf(file_path, key='ymesh', complevel=5)
 
                         pd.DataFrame(mesher.xgrid).to_hdf(file_path, key='xgrid', complevel=5)
-                        pd.DataFrame(mesher.ygrid).to_hdf(file_path, key='ygrid', complevel=5)
+                        pd.DataFrame(mesher.ugrid).to_hdf(file_path, key='ygrid', complevel=5)
 
 if __name__ == "__main__":
     adi_swaption_report()
