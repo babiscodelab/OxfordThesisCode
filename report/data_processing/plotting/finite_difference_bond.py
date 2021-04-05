@@ -59,7 +59,7 @@ def process_bond_fd(input_file):
     ymesh = pd.read_hdf(input_file, key="ymesh")
 
     xgrid = pd.read_hdf(input_file, key="xgrid")
-    ygrid = pd.read_hdf(input_file, key="ygrid")
+    ugrid = pd.read_hdf(input_file, key="ygrid")
 
     bond = Bond(meta_data["maturity"])
     curve = LiborCurve.from_constant_rate(meta_data["curve_rate"])
@@ -67,10 +67,10 @@ def process_bond_fd(input_file):
     bond_value = bond_pricer.price(bond, xmesh, ymesh, 0)
 
     #relative_diff = (output_fd - bond_value)/bond_value
-    analytics_bond = extract_x0_result(bond_value.values, np.array(xgrid[0].values), ygrid[0].values)
-    fd_bond = extract_x0_result(output_fd.values, np.array(xgrid[0].values), ygrid[0].values)
+    analytics_bond = extract_x0_result(bond_value.values, np.array(xgrid[0].values), ugrid[0].values)
+    fd_bond = extract_x0_result(output_fd.values, np.array(xgrid[0].values), ugrid[0].values)
 
-    return fd_bond, analytics_bond, output_fd, bond_value, meta_data, xgrid, ygrid
+    return fd_bond, analytics_bond, output_fd, bond_value, meta_data, xgrid, ugrid
 
 
 

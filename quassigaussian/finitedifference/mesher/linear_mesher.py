@@ -43,8 +43,8 @@ class Mesher2d():
 
         #self.ygrid = np.linspace(ymin, ymax, ysize)
 
-        step_y = self.ugrid[2] - self.ugrid[1]
-        self.ugrid = np.append([self.ugrid[0] - step_y], self.ugrid)
+        step_u = self.ugrid[2] - self.ugrid[1]
+        self.ugrid = np.append([self.ugrid[0] - step_u], self.ugrid)
 
         self.xmesh, self.umesh = np.meshgrid(self.xgrid, self.ugrid, indexing='ij')
 
@@ -71,12 +71,12 @@ def calculate_delta(gridv):
     return delta_p, delta_m
 
 
-def extract_x0_result(res: np.array, x_grid: np.array, y_grid: np.array):
+def extract_x0_result(res: np.array, x_grid: np.array, u_grid: np.array):
 
     x0_pos = np.where(x_grid == 0)[0][0]
-    y0_pos = np.where(y_grid == 0)[0][0]
+    u0_pos = np.where(u_grid == 0)[0][0]
 
-    return res[x0_pos, y0_pos]
+    return res[x0_pos, u0_pos]
 
 
 if __name__ == "__main__":
