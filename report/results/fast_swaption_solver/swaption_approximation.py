@@ -6,9 +6,9 @@ import os
 from report.directories import output_data_raw, date_timestamp
 from quassigaussian.products.pricer import  SwapPricer
 from report.utils import get_nonexistant_path
-from quassigaussian.fastcalibration.discrete_averaging import DiscreteParameterAveraging
-from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
-from quassigaussian.fastcalibration.parameter_averaging import lognormalimpliedvola
+from quassigaussian.fastswaptionsolver.discrete_averaging import DiscreteParameterAveraging
+from quassigaussian.fastswaptionsolver.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
+from quassigaussian.fastswaptionsolver.parameter_averaging import lognormalimpliedvola
 
 
 output_data_raw_approx = os.path.join(output_data_raw, "approximation", "piterbarg_swaption_approx")

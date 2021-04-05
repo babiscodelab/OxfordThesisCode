@@ -7,12 +7,12 @@ import numpy as np
 from report.directories import output_data_raw, date_timestamp
 from quassigaussian.products.pricer import  SwapPricer
 from report.utils import get_nonexistant_path
-from quassigaussian.fastcalibration.discrete_averaging import DiscreteParameterAveraging
-from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY
-from quassigaussian.fastcalibration.parameter_averaging import lognormalimpliedvola
+from quassigaussian.fastswaptionsolver.discrete_averaging import DiscreteParameterAveraging
+from quassigaussian.fastswaptionsolver.numerical_integration import PitergargDiscreteXY
+from quassigaussian.fastswaptionsolver.parameter_averaging import lognormalimpliedvola
 from qgtests.utis import get_mock_yield_curve_const
 from scipy.optimize import minimize
-from quassigaussian.fastcalibration.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
+from quassigaussian.fastswaptionsolver.numerical_integration import PitergargDiscreteXY, RungeKuttaApproxXY
 from scipy.optimize import Bounds
 import matplotlib.pyplot as plt
 

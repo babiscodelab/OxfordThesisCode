@@ -1,6 +1,6 @@
 import numpy as np
 from quassigaussian.products.pricer import SwapPricer, CapitalX
-from quassigaussian.fastcalibration.approximation import PiterbargExpectationApproximator
+from quassigaussian.fastswaptionsolver.approximation import PiterbargExpectationApproximator
 from quassigaussian.parameters.volatility.local_volatility import LinearLocalVolatility
 from scipy.integrate import solve_ivp
 from abc import ABC
